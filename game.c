@@ -30,15 +30,8 @@ void blue_led(void)
     }
 }
 
-
-int main (void)
+void disp_icons(void)
 {
-    system_init ();
-    init_matrix();
-    pacer_init(PACER_RATE);
-    init_blue_led();
-    navswitch_init ();
-
     uint8_t state = 0;
     uint8_t num_states = 3;
     char states[3] = {'R', 'P', 'S'}; 
@@ -68,5 +61,29 @@ int main (void)
         }
 
     }
+}
+
+void init_all(void)
+{
+    system_init ();
+    init_matrix();
+    pacer_init(PACER_RATE);
+    init_blue_led();
+    navswitch_init ();
+    init_text();
+}
+
+/*Displays welcome message and tutorial*/
+void start_game(void)
+{
+    disp_welcome();
+}
+
+
+int main (void)
+{
+    init_all();
+    start_game();
+
 
 }

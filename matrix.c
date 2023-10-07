@@ -1,12 +1,16 @@
 #include "system.h"
 #include "pio.h"
 #include "pacer.h"
+#include "tinygl.h"
+#include "../fonts/font5x7_1.h"
 
 #include "matrix.h"
 #include "navswitch.h"
 
 #define FROM_LOOP_EAST 1
 #define FROM_LOOP_WEST 2
+#define PACER_RATE 500
+#define MESSAGE_RATE 10
 
 void init_matrix(void)
 {
@@ -132,5 +136,28 @@ int8_t disp_scissors(void)
     }
 }
 
+void init_text(void)
+{
+    tinygl_init(PACER_RATE);
+    tinygl_font_set(&font5x7_1);
+    tinygl_text_speed_set(MESSAGE_RATE);
+}
 
+/* Displays welcome message, to exit message shift nav stick*/
+void disp_welcome(void)
+{
+    tinygl_text("Welcome to PSR! Move to start\0");
+    tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);
 
+    while(1)
+    {
+        pacer_wait();
+        navswitch_update ();
+        if (navswitch_push_event_p(NAVSWITCH_WEST) || navswitch_push_event_p(NAVSWITCH_EAST) || navswitch_push_event_p(NAVSWITCH_SOUTH) || navswitch_push_event_p(NAVSWITCH_NORTH)) {
+            tinygl_clear();
+            return;
+        }
+        
+        tinygl_update();
+    }
+}

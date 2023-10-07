@@ -4,6 +4,9 @@
 #include "system.h"
 #include "pio.h"
 #include "pacer.h"
+#include "tinygl.h"
+#include "../fonts/font5x7_1.h"
+
 
 #define FROM_LOOP_EAST 1
 #define FROM_LOOP_WEST 2
@@ -20,7 +23,9 @@ int8_t disp_rock(void);
 
 int8_t disp_scissors(void);
 
+void init_text(void);
 
+void disp_welcome(void);
 
 
 #endif //MATRIX_H
