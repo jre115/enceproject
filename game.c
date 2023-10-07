@@ -82,6 +82,10 @@ void start_game(void)
     char options[] = {'Y', 'N'};
     char character = selectVal(options, 2);
 
+    if (character == 'Y') {
+        displayTutorial();
+    }
+
 }
 
 

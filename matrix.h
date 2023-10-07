@@ -31,4 +31,6 @@ void display_character(char);
 
 char selectVal(char*, uint8_t);
 
+void displayTutorial(void);
+
 #endif //MATRIX_H

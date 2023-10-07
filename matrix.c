@@ -171,6 +171,7 @@ void display_character (char character)
     tinygl_text (buffer);
 }
 
+/* Displays characters from given array, returns selected character*/
 char selectVal(char* states, uint8_t n)
 {
     uint8_t state = 0;
@@ -197,5 +198,17 @@ char selectVal(char* states, uint8_t n)
 
 
     }
+
+}
+
+void displayTutorial(void)
+{
+    disp_text("Rock\0");
+    disp_rock();
+    // UP arrow here ... etc! 
+    disp_text("Paper\0");
+    disp_paper();
+    disp_text("Scissors\0");
+    disp_scissors();
 
 }
