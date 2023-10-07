@@ -143,10 +143,10 @@ void init_text(void)
     tinygl_text_speed_set(MESSAGE_RATE);
 }
 
-/* Displays welcome message, to exit message shift nav stick*/
-void disp_welcome(void)
+/* Displays message, to exit message shift nav stick*/
+void disp_text(char* text)
 {
-    tinygl_text("Welcome to PSR! Move to start\0");
+    tinygl_text(text);
     tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);
 
     while(1)
@@ -158,24 +158,6 @@ void disp_welcome(void)
             return;
         }
         
-        tinygl_update();
-    }
-}
-
-
-void dispTutorial(void)
-{
-    tinygl_text("Play tutorial?\0");
-    tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);
-    while(1)
-    {
-        pacer_wait();
-        navswitch_update ();
-
-        if (navswitch_push_event_p(NAVSWITCH_WEST) || navswitch_push_event_p(NAVSWITCH_EAST) || navswitch_push_event_p(NAVSWITCH_SOUTH) || navswitch_push_event_p(NAVSWITCH_NORTH)) {
-            tinygl_clear();
-            return;
-        }
         tinygl_update();
     }
 }

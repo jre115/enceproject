@@ -25,9 +25,7 @@ int8_t disp_scissors(void);
 
 void init_text(void);
 
-void disp_welcome(void);
-
-void dispTutorial(void);
+void disp_text(char*);
 
 void display_character(char);
 

@@ -77,8 +77,8 @@ void init_all(void)
 /*Displays welcome message and tutorial*/
 void start_game(void)
 {
-    disp_welcome();
-    dispTutorial();
+    disp_text("Welcome to PSR! Move to start\0");
+    disp_text("View tutorial?\0");
     char options[] = {'Y', 'N'};
     char character = selectVal(options, 2);
 
