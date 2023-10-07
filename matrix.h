@@ -27,5 +27,10 @@ void init_text(void);
 
 void disp_welcome(void);
 
+void dispTutorial(void);
+
+void display_character(char);
+
+char selectVal(char*, uint8_t);
 
 #endif //MATRIX_H

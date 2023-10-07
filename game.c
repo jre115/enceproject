@@ -63,6 +63,7 @@ void disp_icons(void)
     }
 }
 
+
 void init_all(void)
 {
     system_init ();
@@ -77,6 +78,10 @@ void init_all(void)
 void start_game(void)
 {
     disp_welcome();
+    dispTutorial();
+    char options[] = {'Y', 'N'};
+    char character = selectVal(options, 2);
+
 }
 
 

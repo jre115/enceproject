@@ -161,3 +161,59 @@ void disp_welcome(void)
         tinygl_update();
     }
 }
+
+
+void dispTutorial(void)
+{
+    tinygl_text("Play tutorial?\0");
+    tinygl_text_mode_set(TINYGL_TEXT_MODE_SCROLL);
+    while(1)
+    {
+        pacer_wait();
+        navswitch_update ();
+
+        if (navswitch_push_event_p(NAVSWITCH_WEST) || navswitch_push_event_p(NAVSWITCH_EAST) || navswitch_push_event_p(NAVSWITCH_SOUTH) || navswitch_push_event_p(NAVSWITCH_NORTH)) {
+            tinygl_clear();
+            return;
+        }
+        tinygl_update();
+    }
+}
+
+void display_character (char character)
+{
+    char buffer[2];
+
+    buffer[0] = character;
+    buffer[1] = '\0';
+    tinygl_text (buffer);
+}
+
+char selectVal(char* states, uint8_t n)
+{
+    uint8_t state = 0;
+    char character = 'Y';
+    while (1) {
+        pacer_wait ();
+        tinygl_update ();
+        navswitch_update ();
+
+        if (navswitch_push_event_p(NAVSWITCH_EAST)) {
+            init_matrix();
+            state = (state + 1) % n;
+        } else if (navswitch_push_event_p(NAVSWITCH_WEST)) {
+            init_matrix();
+            state = (state - 1 + n) % n;
+        }
+
+        display_character (states[state]);
+
+        if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
+            init_matrix();
+            return states[state];
+        }
+
+
+    }
+
+}
