@@ -28,9 +28,12 @@ pacer.o: pacer.c ../../drivers/avr/system.h pacer.h
 navswitch.o: ../../drivers/navswitch.c ../../drivers/avr/delay.h ../../drivers/avr/pio.h ../../drivers/avr/system.h ../../drivers/navswitch.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+matrix.o: matrix.c ../../drivers/navswitch.h pacer.h ../../drivers/avr/system.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
 
 # Link: create ELF output file from object files.
-game.out: game.o system.o pacer.o navswitch.o
+game.out: game.o system.o pacer.o navswitch.o matrix.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
