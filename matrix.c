@@ -140,6 +140,125 @@ int8_t disp_scissors(void)
     }
 }
 
+
+
+int8_t disp_up_arrow(void)
+{
+    uint16_t state = 0;
+
+    while (1) {
+
+        pacer_wait();
+        init_matrix();
+        navswitch_update ();
+
+        if (navswitch_push_event_p(NAVSWITCH_WEST)) {
+            return FROM_LOOP_EAST;  // JR NOTE DO I NEED TO JUST RETURN ANY LOOP DOES NOT MATTER WHICH WAY JUST WHEN STICK IS MOVED.... 
+        } else if (navswitch_push_event_p(NAVSWITCH_EAST)) {
+            return FROM_LOOP_WEST;
+        }
+    
+        if (state == 0) {
+            pio_output_low(LEDMAT_ROW1_PIO);
+            pio_output_low(LEDMAT_ROW2_PIO);
+            pio_output_low(LEDMAT_ROW3_PIO);
+            pio_output_low(LEDMAT_ROW4_PIO);
+            pio_output_low(LEDMAT_ROW5_PIO);
+            pio_output_low(LEDMAT_ROW6_PIO);
+            pio_output_low(LEDMAT_ROW7_PIO);
+            pio_output_low(LEDMAT_COL3_PIO);
+            state = 1;
+        } else if (state == 1) {
+            pio_output_low(LEDMAT_ROW2_PIO);
+            pio_output_low(LEDMAT_COL2_PIO);
+            pio_output_low(LEDMAT_COL4_PIO);
+            state = 2;
+        } else {
+            pio_output_low(LEDMAT_ROW3_PIO);
+            pio_output_low(LEDMAT_COL1_PIO);
+            pio_output_low(LEDMAT_COL5_PIO);
+            state = 0;
+        }
+    }
+}
+
+int8_t disp_right_arrow(void)
+{
+    uint16_t state = 0;
+
+    while (1) {
+
+        pacer_wait();
+        init_matrix();
+        navswitch_update ();
+
+        if (navswitch_push_event_p(NAVSWITCH_WEST)) {
+            return FROM_LOOP_EAST;  // Exit the loop when either west or east is pressed
+        } else if (navswitch_push_event_p(NAVSWITCH_EAST)) {
+            return FROM_LOOP_WEST;
+        }
+    
+        if (state == 0) {
+            pio_output_low(LEDMAT_ROW4_PIO);
+            pio_output_low(LEDMAT_COL1_PIO);
+            pio_output_low(LEDMAT_COL2_PIO);
+            pio_output_low(LEDMAT_COL3_PIO);
+            pio_output_low(LEDMAT_COL4_PIO);
+            pio_output_low(LEDMAT_COL5_PIO);
+            state = 1;
+        } else if (state == 1) {
+            pio_output_low(LEDMAT_ROW3_PIO);
+            pio_output_low(LEDMAT_ROW5_PIO);
+            pio_output_low(LEDMAT_COL4_PIO);
+            state = 2;
+        } else {
+            pio_output_low(LEDMAT_ROW2_PIO);
+            pio_output_low(LEDMAT_ROW6_PIO);
+            pio_output_low(LEDMAT_COL3_PIO);
+            state = 0;
+        }
+    }
+}
+
+int8_t disp_left_arrow(void)
+{
+    uint16_t state = 0;
+
+    while (1) {
+
+        pacer_wait();
+        init_matrix();
+        navswitch_update ();
+
+        if (navswitch_push_event_p(NAVSWITCH_WEST)) {
+            return FROM_LOOP_EAST;  // Exit the loop when either west or east is pressed
+        } else if (navswitch_push_event_p(NAVSWITCH_EAST)) {
+            return FROM_LOOP_WEST;
+        }
+    
+        if (state == 0) {
+            pio_output_low(LEDMAT_ROW4_PIO);
+            pio_output_low(LEDMAT_COL1_PIO);
+            pio_output_low(LEDMAT_COL2_PIO);
+            pio_output_low(LEDMAT_COL3_PIO);
+            pio_output_low(LEDMAT_COL4_PIO);
+            pio_output_low(LEDMAT_COL5_PIO);
+            state = 1;
+        } else if (state == 1) {
+            pio_output_low(LEDMAT_ROW3_PIO);
+            pio_output_low(LEDMAT_ROW5_PIO);
+            pio_output_low(LEDMAT_COL2_PIO);
+            state = 2;
+        } else {
+            pio_output_low(LEDMAT_ROW2_PIO);
+            pio_output_low(LEDMAT_ROW6_PIO);
+            pio_output_low(LEDMAT_COL3_PIO);
+            state = 0;
+        }
+    }
+}
+
+
 void init_text(void)
 {
     tinygl_init(PACER_RATE);
@@ -207,10 +326,12 @@ void displayTutorial(void)
 {
     disp_text("Rock\0");
     disp_rock();
-    // UP arrow here ... etc! 
+    disp_up_arrow();
     disp_text("Paper\0");
+    disp_right_arrow();
     disp_paper();
     disp_text("Scissors\0");
+    disp_left_arrow();
     disp_scissors();
 
 }
