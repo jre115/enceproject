@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include "navswitch.h"
 #include "pacer.h"
 
 static uint16_t pacer_period;
