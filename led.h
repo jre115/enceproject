@@ -11,4 +11,7 @@ void led_off (void);
 
 /** Initialise LED1.  */
 void led_init (void);
+
+/** Turn blue led on when navswitched pressed*/
+void led_run (void);
 #endif
