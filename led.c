@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include "led.h"
+#include "navswitch.h"
 
 
 /** Turn LED1 on.  */
@@ -20,4 +21,16 @@ void led_off (void)
 void led_init (void)
 {
     DDRC |= (1 << 2);
+}
+
+/** Turn blue led on when navswitched pressed*/
+void led_run (void)
+{
+    while(1) {
+        if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
+            led_on();
+        } else {
+            led_off();
+        }
+    }
 }

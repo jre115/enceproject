@@ -12,7 +12,7 @@
 #define PACER_RATE 500
 #define MESSAGE_RATE 10
 
-void init_matrix(void)
+void matrix_init(void)
 {
     pio_config_set(LEDMAT_ROW1_PIO, PIO_OUTPUT_HIGH);
     pio_config_set(LEDMAT_ROW2_PIO, PIO_OUTPUT_HIGH);
@@ -37,13 +37,13 @@ int8_t disp_paper(void)
     while (1) {
 
         pacer_wait();
-        init_matrix();
+        matrix_init();
         navswitch_update ();
 
         if (navswitch_push_event_p(NAVSWITCH_WEST)) {
-            return FROM_LOOP_EAST;  // Exit the loop when either west or east is pressed
+            return FROM_LOOP_WEST;  // Exit the loop when either west or east is pressed
         } else if (navswitch_push_event_p(NAVSWITCH_EAST)) {
-            return FROM_LOOP_WEST;
+            return FROM_LOOP_EAST;
         }
     
         if (state == 0) {
@@ -75,13 +75,13 @@ int8_t disp_rock(void)
     while (1) {
 
         pacer_wait();
-        init_matrix();
+        matrix_init();
         navswitch_update ();
 
         if (navswitch_push_event_p(NAVSWITCH_WEST)) {
-            return FROM_LOOP_EAST;  // Exit the loop when either west or east is pressed
+            return FROM_LOOP_WEST;  // Exit the loop when either west or east is pressed
         } else if (navswitch_push_event_p(NAVSWITCH_EAST)) {
-            return FROM_LOOP_WEST;
+            return FROM_LOOP_EAST;
         }
     
         if (state == 0) {
@@ -107,13 +107,13 @@ int8_t disp_scissors(void)
     while (1) {
 
         pacer_wait();
-        init_matrix();
+        matrix_init();
         navswitch_update ();
 
         if (navswitch_push_event_p(NAVSWITCH_WEST)) {
-            return FROM_LOOP_EAST;  // Exit the loop when either west or east is pressed
+            return FROM_LOOP_WEST;  // Exit the loop when either west or east is pressed
         } else if (navswitch_push_event_p(NAVSWITCH_EAST)) {
-            return FROM_LOOP_WEST;
+            return FROM_LOOP_EAST;
         }
     
         if (state == 0) {
@@ -298,28 +298,26 @@ void display_character (char character)
 char selectVal(char* states, uint8_t n)
 {
     uint8_t state = 0;
-    char character = 'Y';
+    // char character = 'Y';
     while (1) {
         pacer_wait ();
         tinygl_update ();
         navswitch_update ();
 
         if (navswitch_push_event_p(NAVSWITCH_EAST)) {
-            init_matrix();
+            matrix_init();
             state = (state + 1) % n;
         } else if (navswitch_push_event_p(NAVSWITCH_WEST)) {
-            init_matrix();
+            matrix_init();
             state = (state - 1 + n) % n;
         }
 
         display_character (states[state]);
 
         if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
-            init_matrix();
+            matrix_init();
             return states[state];
         }
-
-
     }
 
 }
