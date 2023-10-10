@@ -6,9 +6,12 @@
 #include "led.h"
 #include "navswitch.h"
 #include "matrix.h"
+
 #define PACER_RATE  500/* Pacer loop - controls main loop */
 #define FROM_LOOP_EAST 1
 #define FROM_LOOP_WEST 2
+#define NUMBER_OF_CHOICES_FOR_START 2
+#define NUMBER_OF_CHOICES_FOR_ROUNDS 5
 
 void disp_icons(void)
 {
@@ -49,7 +52,6 @@ void init_all(void)
     system_init ();
     matrix_init();
     pacer_init(PACER_RATE);
-    init_blue_led();
     navswitch_init ();
     init_text();
 }
@@ -60,7 +62,7 @@ void start_game(void)
     disp_text("Welcome to PSR! Move to start\0");
     disp_text("View tutorial?\0");
     char options[] = {'Y', 'N'};
-    char character = selectVal(options, 2);
+    char character = selectVal(options, NUMBER_OF_CHOICES_FOR_START);
 
     if (character == 'Y') {
         displayTutorial();
@@ -71,8 +73,9 @@ void start_game(void)
 void setup_game(void)
 {
     disp_text("How many rounds?\0");
-    char roundOptions[] = {'1', '3', '5', '7', '9', '11'};
-    char roundNum = selectVal(roundOptions, 6);
+    char roundOptions[] = {'1', '3', '5', '7', '9'};
+    // char roundNum = selectVal(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
+    selectVal(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
 }
 
 
@@ -81,6 +84,5 @@ int main (void)
     init_all();
     start_game();
     setup_game();
-
 
 }
