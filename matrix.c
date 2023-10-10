@@ -149,7 +149,7 @@ int8_t disp_up_arrow(void)
     while (1) {
 
         pacer_wait();
-        init_matrix();
+        matrix_init();
         navswitch_update ();
 
         if (navswitch_push_event_p(NAVSWITCH_WEST)) {
@@ -189,7 +189,7 @@ int8_t disp_right_arrow(void)
     while (1) {
 
         pacer_wait();
-        init_matrix();
+        matrix_init();
         navswitch_update ();
 
         if (navswitch_push_event_p(NAVSWITCH_WEST)) {
@@ -227,7 +227,7 @@ int8_t disp_left_arrow(void)
     while (1) {
 
         pacer_wait();
-        init_matrix();
+        matrix_init();
         navswitch_update ();
 
         if (navswitch_push_event_p(NAVSWITCH_WEST)) {
