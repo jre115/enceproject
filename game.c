@@ -68,11 +68,19 @@ void start_game(void)
 
 }
 
+void setup_game(void)
+{
+    disp_text("How many rounds?\0");
+    char roundOptions[] = {'1', '3', '5', '7', '9', '11'};
+    char roundNum = selectVal(roundOptions, 6);
+}
+
 
 int main (void)
 {
     init_all();
     start_game();
+    setup_game();
 
 
 }
