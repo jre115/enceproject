@@ -13,6 +13,8 @@
 /* Initialise the matrix lights.  */
 void matrix_init(void);
 
+void display_clear(void);
+
 int8_t disp_paper(void);
 
 int8_t disp_rock(void);
@@ -21,11 +23,11 @@ int8_t disp_rock(void);
 
 int8_t disp_scissors(void);
 
-void init_text(void);
+void init_text(char*);
 
-void disp_text(char*);
+void disp_text(void);
 
-void display_character(char);
+void disp_character(char);
 
 char selectVal(char*, uint8_t);
 

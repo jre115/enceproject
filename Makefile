@@ -25,7 +25,10 @@ system.o: ../../drivers/avr/system.c ../../drivers/avr/system.h
 navswitch.o: ../../drivers/navswitch.c ../../drivers/avr/delay.h ../../drivers/avr/pio.h ../../drivers/avr/system.h ../../drivers/navswitch.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-matrix.o: matrix.c ../../drivers/navswitch.h ../../drivers/avr/system.h ../../drivers/display.h ../../fonts/font5x7_1.h ../../utils/font.h ../../utils/tinygl.h
+matrix.o: matrix.c nav.h ../../drivers/navswitch.h ../../drivers/avr/system.h ../../drivers/display.h ../../fonts/font5x7_1.h ../../utils/font.h ../../utils/tinygl.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+nav.o: nav.c ../../drivers/navswitch.h ../../drivers/avr/system.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 pacer.o: pacer.c ../../drivers/avr/system.h pacer.h
@@ -45,7 +48,7 @@ display.o: ../../drivers/display.c ../../drivers/avr/system.h ../../drivers/disp
 
 
 # Link: create ELF output file from object files.
-game.out: game.o system.o pacer.o navswitch.o matrix.o display.o ledmat.o font.o pacer.o tinygl.o
+game.out: game.o system.o pacer.o navswitch.o matrix.o display.o ledmat.o font.o pacer.o tinygl.o nav.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
