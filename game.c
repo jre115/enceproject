@@ -11,12 +11,16 @@
 #include "tinygl.h"
 
 #define PACER_RATE  500 /* Pacer loop - controls main loop */
+#define PRESCALAR 1024
+#define CPU_F 8000000
 #define FROM_LOOP_EAST 1
 #define FROM_LOOP_WEST 2
 #define NUMBER_OF_CHOICES_FOR_START 2
 #define NUMBER_OF_CHOICES_FOR_ROUNDS 5
 #define TRUE 1
 #define FALSE 0
+
+#define PSR_COUNTDOWN_TIME 750
 
 #define MAXIMUM_ASCII_VALUE 265
 #define MINIMUM_ASCII_VALUE 0
@@ -39,6 +43,7 @@ void init_all(void)
     matrix_init();
     navswitch_init ();
     ir_uart_init();
+    our_timer_init();
 }
 
 
@@ -53,6 +58,18 @@ void show_display(void(*displayfunc)(void))
             break;
         }
     }
+}
+
+void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
+{
+    uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
+
+    TCNT1 = 0;
+    while (TCNT1 < ticks) {
+        displayfunc();
+    }
+    matrix_init();
+
 }
 
 void displayTutorial(void)
@@ -148,7 +165,12 @@ char set_num_rounds(void)
     scrolling_text("How many rounds?\0");
     char roundOptions[] = {'1', '3', '5', '7', '9'};
     char numRounds = '0';
+
+    // need to figure out a way to display first then capture
+    // ######### currently you need to push down to access the rounds!!!
     while (1) {
+        pacer_wait();
+        navswitch_update();
         if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
             // set to user of this boards value
             numRounds = selectAndDisplayOptions(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
@@ -157,46 +179,19 @@ char set_num_rounds(void)
             numRounds = receive_char('1', '9');
             // got to check if it's 2, 3, 6 or 8
             // set to this value
-            displayReceivedChar(numRounds);
+            disp_character(numRounds);
         }
     }
 
     return numRounds;
 }
 
-char set_num_rounds(void)
+
+void icon_countdown(void) 
 {
-    // test asking how many rounds
-    // display a round option on theboard
-    // if it recieves a char from the other board stop displaying and make it 
-}
-
-// char setup_game(void)
-// {
-//     return setNumRounds(); // getting the rounds from either this player or the other one
-
-// }
-
-void rotate_through_icons(void) 
-{
-    int16_t button_tick = 0;
-    while(1) {
-        pacer_wait();
-        button_tick++;
-        if ((button_tick - 60) > 0) {
-            matrix_init();
-            break;
-        } else if ((button_tick - 45) > 0) {
-            tinygl_text("Shoot\0");
-        } else if ((button_tick - 30) > 0) {
-            show_display(&display_rock);
-        } else if ((button_tick - 15) > 0) {
-            show_display(&display_scissors);
-        } else {
-            show_display(&display_paper);
-        }
-    }
-    
+    timed_display(&display_paper, PSR_COUNTDOWN_TIME);
+    timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
+    timed_display(&display_rock, PSR_COUNTDOWN_TIME);
 }
 
 void game_start(char roundsChar)
@@ -205,7 +200,8 @@ void game_start(char roundsChar)
     for (uint8_t i = 0; i < rounds; i++) {
         // play a game of paper sissors rock and display winner
         scrolling_text("Ready?\0");
-        rotate_through_icons();
+        icon_countdown();
+        
     }
 }
 
