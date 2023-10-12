@@ -8,6 +8,7 @@
 #include "matrix.h"
 #include "nav.h"
 #include "ir_uart.h"
+#include "tinygl.h"
 
 #define PACER_RATE  500 /* Pacer loop - controls main loop */
 #define FROM_LOOP_EAST 1
@@ -18,139 +19,70 @@
 #define MAXIMUM_ASCII_VALUE 265
 #define MINIMUM_ASCII_VALUE 0
 #define NUMBER_OF_ICONS 3
-/*
+
+void show_display(void(*displayfunc)(void));
+void displayTutorial(void);
+void scrolling_text(char* text);
+char selectAndDisplayOptions(char* states, uint8_t n);
+void game_welcome(void);
+void send_char(char character);
+char receive_char(char upperBound, char lowerBound);
+char set_num_rounds(void);
+void rotate_through_icons(void);
+void game_start(char roundsChar);
+
 void init_all(void)
 {
     system_init ();
     matrix_init();
-    pacer_init(PACER_RATE);
     navswitch_init ();
-    init_text();
     ir_uart_init();
 }
 
-*/
 
-
-/*
-void displayTutorial(void)
+void show_display(void(*displayfunc)(void))
 {
-    disp_text("Rock\0");
-    display_rock();
-    //concurrent checking for moving switch - need general move switch function
-    display_up_arrow();
-    // concurrent checking for moving switch(NORTH) then when you have it will move on.
-    display_text("Paper\0");
-    display_right_arrow();
-    display_paper();
-    display_text("Scissors\0");
-    display_left_arrow();
-    display_scissors();
-
-}
-
-*/
-
-
-
-/*Displays welcome message and tutorial*/
-void game_Welcome(void)
-{
-    scrolling_text("Welcome to PSR! Move to start\0");
-    scrolling_text("View tutorial?\0");
-
-    char options[] = {'Y', 'N'};
-
-    char character = selectAndDisplayOptions(options, 2);
-
-    if (character == 'Y') {
-        displayTutorial();
-    }
-
-}
-
-void send_char(char character)
-{
-    /* TODO: Transmit the character over IR on a NAVSWITCH_PUSH event.  */
-    if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
-        ir_uart_putc(character);
-    }
-}
-
-
-char receive_char(char upperBound, char lowerBound){
-    char character = '0';
-    
-    if (ir_uart_read_ready_p()) {
-        char temp_char = ir_uart_getc();
-        if (temp_char >= lowerBound && temp_char <= upperBound) {
-            character = temp_char;
-        }
-    }
-    return character;
-}
-
-char set_num_rounds(void){
-    disp_text("How many rounds?\0");
-    char roundOptions[] = {'1', '3', '5', '7', '9'};
-    char numRounds = '0';
-    // display the choices
-    // bool roundsSet = false;
-    numRounds = selectVal(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
-    // while (roundsSet == false) {
-    //     if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
-    //         // set to user of this boards value
-    //         numRounds = selectVal(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
-    //         roundsSet = true;
-    //     } else if (ir_uart_read_ready_p()) {
-    //         numRounds = receiveChar('1', '9');
-    //         // got to check if it's 2, 3, 6 or 8
-    //         // set to this value
-    //         displayReceivedChar(numRounds);
-    //     }
-    // }
-    return numRounds;
-}
-
-// char setup_game(void)
-// {
-//     return setNumRounds(); // getting the rounds from either this player or the other one
-
-// }
-
-void rotate_through_icons(void) 
-{
-    int16_t button_tick = 0;
     while(1) {
         pacer_wait();
-        button_tick++;
-        if ((button_tick - 60) > 0) {
+        displayfunc();
+        navswitch_update();
+        if (direction_moved() != 0) {
             matrix_init();
             break;
-        } else if ((button_tick - 45) > 0) {
-            tinygl_text("Shoot\0");
-        } else if ((button_tick - 30) > 0) {
-            disp_rock();
-        } else if ((button_tick - 15) > 0) {
-            disp_scissors();
-        } else {
-            disp_paper();
         }
     }
+}
+
+void displayTutorial(void)
+{
+    scrolling_text("Rock\0");
+    show_display(&display_north_arrow);
+    show_display(&display_rock);
+
+    scrolling_text("Paper\0");
+    show_display(&display_east_arrow);
+    show_display(&display_paper);
+
+    scrolling_text("Scissors\0");
+    show_display(&display_west_arrow);
+    show_display(&display_scissors);
     
 }
 
-void game_start(char roundsChar)
+void scrolling_text(char* text)
 {
-    uint8_t rounds = roundsChar - '0';
-    for (uint8_t i = 0; i < rounds; i++) {
-        // play a game of paper sissors rock and display winner
-        rotateThroughIcons();
+    init_text(text);
+
+    while (1) {
+        pacer_wait();
+        disp_text();
+        navswitch_update();
+        if (direction_moved() != 0) {
+            matrix_init();
+            break;
+        }
     }
 }
-
-
-
 
 // JR note move this to user input .c??
 char selectAndDisplayOptions(char* states, uint8_t n)
@@ -178,22 +110,105 @@ char selectAndDisplayOptions(char* states, uint8_t n)
 
 }
 
-void scrolling_text(char* text)
+/*Displays welcome message and tutorial*/
+void game_welcome(void)
 {
-    init_text(text);
+    scrolling_text("Welcome to PSR! Move to start\0");
+    scrolling_text("View tutorial?\0");
 
-    while (1) {
-        pacer_wait();
-        disp_text();
-        navswitch_update();
-        if (direction_moved() != 0) {
-            matrix_init();
-            break;
-        }
+    char options[] = {'Y', 'N'};
+
+    char character = selectAndDisplayOptions(options, 2);
+
+    if (character == 'Y') {
+        displayTutorial();
+    }
+
+}
+
+void send_char(char character)
+{
+    /* TODO: Transmit the character over IR on a NAVSWITCH_PUSH event.  */
+    if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
+        ir_uart_putc(character);
     }
 }
 
 
+char receive_char(char upperBound, char lowerBound)
+{
+    char character = '0';
+    
+    if (ir_uart_read_ready_p()) {
+        char temp_char = ir_uart_getc();
+        if (temp_char >= lowerBound && temp_char <= upperBound) {
+            character = temp_char;
+        }
+    }
+    return character;
+}
+
+char set_num_rounds(void)
+{
+    scrolling_text("How many rounds?\0");
+    char roundOptions[] = {'1', '3', '5', '7', '9'};
+    char numRounds = '0';
+    // display the choices
+
+    // bool roundsSet = false;
+    numRounds = selectVal(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
+    // while (roundsSet == false) {
+    //     if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
+    //         // set to user of this boards value
+    //         numRounds = selectVal(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
+    //         roundsSet = true;
+    //     } else if (ir_uart_read_ready_p()) {
+    //         numRounds = receiveChar('1', '9');
+    //         // got to check if it's 2, 3, 6 or 8
+    //         // set to this value
+    //         displayReceivedChar(numRounds);
+    //     }
+    // }
+
+    return numRounds;
+}
+
+// char setup_game(void)
+// {
+//     return setNumRounds(); // getting the rounds from either this player or the other one
+
+// }
+
+void rotate_through_icons(void) 
+{
+    int16_t button_tick = 0;
+    while(1) {
+        pacer_wait();
+        button_tick++;
+        if ((button_tick - 60) > 0) {
+            matrix_init();
+            break;
+        } else if ((button_tick - 45) > 0) {
+            tinygl_text("Shoot\0");
+        } else if ((button_tick - 30) > 0) {
+            display_rock();
+        } else if ((button_tick - 15) > 0) {
+            display_scissors();
+        } else {
+            display_paper();
+        }
+    }
+    
+}
+
+void game_start(char roundsChar)
+{
+    uint8_t rounds = roundsChar - '0';
+    for (uint8_t i = 0; i < rounds; i++) {
+        // play a game of paper sissors rock and display winner
+        rotate_through_icons();
+    }
+}
 
 
 
@@ -202,10 +217,10 @@ int main (void)
     init_all();
     pacer_init(PACER_RATE);
 
-    game_welcome();
+    game_welcome(); // whoop whoop this is all good :)
     
-    char numRounds = set_num_rounds();
-    game_start(numRounds);
+    // char numRounds = set_num_rounds();
+    // game_start(numRounds);
 
     //start_game();
     //setup_game();

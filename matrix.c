@@ -22,26 +22,19 @@ void matrix_init(void)
 }
 
 
-int8_t display_shape(uint8_t* bitmap)
+void display_shape(uint8_t* bitmap)
 {
-    uint8_t current_column = 1;
+    static uint8_t current_column = 1;
   
-    while (1)
+    ledmat_display_column (bitmap[current_column], current_column);
+
+    current_column++;
+
+    if (current_column > (LEDMAT_COLS_NUM - 1))
     {
-        pacer_wait ();
-
-        
-        ledmat_display_column (bitmap[current_column], current_column);
-    
-        current_column++;
-    
-        if (current_column > (LEDMAT_COLS_NUM - 1))
-        {
-            current_column = 0;
-        }           
-    }
+        current_column = 0;
+    }           
 }
-
 
 
 void init_text(char* text)
@@ -70,14 +63,10 @@ void disp_character (char character)
 
 }
 
-
-
-
 /* Displays characters from given array, returns selected character*/
 char selectVal(char* states, uint8_t n)
 {
     uint8_t state = 0;
-    // char character = 'Y';
     while (1) {
         pacer_wait ();
         tinygl_update ();
@@ -98,12 +87,11 @@ char selectVal(char* states, uint8_t n)
             return states[state];
         }
     }
-
 }
 
 void display_rock(void)
 {
-    uint8_t rockmap[] = {0x00, 0x1C, 0x1C, 0x1C, 0x00};
+    uint8_t rockmap[] = {0x00, 0x08, 0x1C, 0x08, 0x00};
     display_shape(rockmap);
 }
 
