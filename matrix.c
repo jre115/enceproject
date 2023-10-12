@@ -64,30 +64,30 @@ void disp_character (char character)
 }
 
 /* Displays characters from given array, returns selected character*/
-char selectVal(char* states, uint8_t n)
-{
-    uint8_t state = 0;
-    while (1) {
-        pacer_wait ();
-        tinygl_update ();
-        navswitch_update ();
+// char show_values(char* states, uint8_t n)
+// {
+//     uint8_t state = 0;
+//     while (1) {
+//         pacer_wait ();
+//         tinygl_update ();
+//         navswitch_update ();
 
-        if (navswitch_push_event_p(NAVSWITCH_EAST)) {
-            matrix_init();
-            state = (state + 1) % n;
-        } else if (navswitch_push_event_p(NAVSWITCH_WEST)) {
-            matrix_init();
-            state = (state - 1 + n) % n;
-        }
+//         if (navswitch_push_event_p(NAVSWITCH_EAST)) {
+//             matrix_init();
+//             state = (state + 1) % n;
+//         } else if (navswitch_push_event_p(NAVSWITCH_WEST)) {
+//             matrix_init();
+//             state = (state - 1 + n) % n;
+//         }
 
-        disp_character (states[state]);
+//         disp_character (states[state]);
 
-        if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
-            matrix_init();
-            return states[state];
-        }
-    }
-}
+//         if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
+//             matrix_init();
+//             return states[state];
+//         }
+//     }
+// }
 
 void display_rock(void)
 {

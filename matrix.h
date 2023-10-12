@@ -16,7 +16,7 @@ void disp_text(void);
 void disp_character (char character);
 
 /* Displays characters from given array, returns selected character*/
-char selectVal(char* states, uint8_t n);
+// char selectVal(char* states, uint8_t n);
 
 void display_rock(void);
 

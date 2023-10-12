@@ -15,6 +15,8 @@
 #define FROM_LOOP_WEST 2
 #define NUMBER_OF_CHOICES_FOR_START 2
 #define NUMBER_OF_CHOICES_FOR_ROUNDS 5
+#define TRUE 1
+#define FALSE 0
 
 #define MAXIMUM_ASCII_VALUE 265
 #define MINIMUM_ASCII_VALUE 0
@@ -72,16 +74,8 @@ void displayTutorial(void)
 void scrolling_text(char* text)
 {
     init_text(text);
+    show_display(&disp_text);
 
-    while (1) {
-        pacer_wait();
-        disp_text();
-        navswitch_update();
-        if (direction_moved() != 0) {
-            matrix_init();
-            break;
-        }
-    }
 }
 
 // JR note move this to user input .c??
@@ -148,29 +142,33 @@ char receive_char(char upperBound, char lowerBound)
     return character;
 }
 
+
 char set_num_rounds(void)
 {
     scrolling_text("How many rounds?\0");
     char roundOptions[] = {'1', '3', '5', '7', '9'};
     char numRounds = '0';
-    // display the choices
-
-    // bool roundsSet = false;
-    numRounds = selectVal(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
-    // while (roundsSet == false) {
-    //     if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
-    //         // set to user of this boards value
-    //         numRounds = selectVal(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
-    //         roundsSet = true;
-    //     } else if (ir_uart_read_ready_p()) {
-    //         numRounds = receiveChar('1', '9');
-    //         // got to check if it's 2, 3, 6 or 8
-    //         // set to this value
-    //         displayReceivedChar(numRounds);
-    //     }
-    // }
+    while (1) {
+        if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
+            // set to user of this boards value
+            numRounds = selectAndDisplayOptions(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
+            break;
+        } else if (ir_uart_read_ready_p()) {
+            numRounds = receive_char('1', '9');
+            // got to check if it's 2, 3, 6 or 8
+            // set to this value
+            displayReceivedChar(numRounds);
+        }
+    }
 
     return numRounds;
+}
+
+char set_num_rounds(void)
+{
+    // test asking how many rounds
+    // display a round option on theboard
+    // if it recieves a char from the other board stop displaying and make it 
 }
 
 // char setup_game(void)
@@ -191,11 +189,11 @@ void rotate_through_icons(void)
         } else if ((button_tick - 45) > 0) {
             tinygl_text("Shoot\0");
         } else if ((button_tick - 30) > 0) {
-            display_rock();
+            show_display(&display_rock);
         } else if ((button_tick - 15) > 0) {
-            display_scissors();
+            show_display(&display_scissors);
         } else {
-            display_paper();
+            show_display(&display_paper);
         }
     }
     
@@ -206,6 +204,7 @@ void game_start(char roundsChar)
     uint8_t rounds = roundsChar - '0';
     for (uint8_t i = 0; i < rounds; i++) {
         // play a game of paper sissors rock and display winner
+        scrolling_text("Ready?\0");
         rotate_through_icons();
     }
 }
@@ -219,8 +218,8 @@ int main (void)
 
     game_welcome(); // whoop whoop this is all good :)
     
-    // char numRounds = set_num_rounds();
-    // game_start(numRounds);
+    char numRounds = set_num_rounds();
+    game_start(numRounds);
 
     //start_game();
     //setup_game();
