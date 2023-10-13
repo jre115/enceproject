@@ -20,6 +20,8 @@
 #define TRUE 1
 #define FALSE 0
 
+#define NULLCHAR '\0'
+
 #define PSR_COUNTDOWN_TIME 750
 
 #define MAXIMUM_ASCII_VALUE 265
@@ -29,9 +31,9 @@
 void show_display(void(*displayfunc)(void), uint8_t direction);
 void displayTutorial(void);
 void scrolling_text(char* text);
-char selectAndDisplayOptions(char* states, uint8_t n);
+//char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode);
 void game_welcome(void);
-void send_char(char character);
+char send_char(char character);
 char receive_char(char upperBound, char lowerBound);
 char set_num_rounds(void);
 void rotate_through_icons(void);
@@ -52,7 +54,7 @@ void show_display(void(*displayfunc)(void), uint8_t direction)
         pacer_wait();
         displayfunc();
         navswitch_update();
-        if (((direction_moved() != 0) && direction == ANY) || (direction_moved() == direction)){
+        if (((direction_moved() != 0) && direction == ANY) || (is_goal_nav(direction))){
             matrix_init();
             break;
         }
@@ -103,17 +105,26 @@ void scrolling_text(char* text)
 
 }
 
+typedef enum {
+    INDIVIDUAL,
+    DUAL
+} displayMode_t;
+
 // JR note move this to user input .c??
-char selectAndDisplayOptions(char* states, uint8_t n)
+char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 {
     // add uart in here
     uint8_t state = 0;
     matrix_init();
+    uint8_t tick = 0;
+
     while (1) {
+        tick += 1;
         pacer_wait();
         navswitch_update();
         disp_text();
-
+        
+        // for cycling through options and displaying the current in the array
         if (is_goal_nav(EAST)) {
             state = (state + 1) % n;
         } else if (is_goal_nav(WEST)) {
@@ -122,10 +133,24 @@ char selectAndDisplayOptions(char* states, uint8_t n)
 
         disp_character(states[state]);
 
-        if (is_goal_nav(PUSH)) {
-            matrix_init();
-            return states[state];
+        if (mode == INDIVIDUAL) {
+            if (is_goal_nav(PUSH)) {
+                matrix_init();
+                return states[state];
+            }
+        } else if (mode == DUAL) {
+            if (tick > PACER_RATE / 20) {
+                tick = 0;
+                char character = send_char(states[state]);
+            } else {
+                char character = receive_char(states[n-1], states[0]);
+            }
+
+            if (character != NULLCHAR) {
+                return character;
+            }
         }
+    
     }
 
 }
@@ -138,7 +163,7 @@ void game_welcome(void)
 
     char options[] = {'Y', 'N'};
 
-    char character = selectAndDisplayOptions(options, 2);
+    char character = selectAndDisplayOptions(options, 2, INDIVIDUAL);
 
     if (character == 'Y') {
         displayTutorial();
@@ -146,18 +171,21 @@ void game_welcome(void)
 
 }
 
-void send_char(char character)
+char send_char(char character)
 {
     /* TODO: Transmit the character over IR on a NAVSWITCH_PUSH event.  */
     if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
         ir_uart_putc(character);
+        return character;
     }
+
+    return NULLCHAR;
 }
 
 
 char receive_char(char upperBound, char lowerBound)
 {
-    char character = '0';
+    char character = NULLCHAR;
     
     if (ir_uart_read_ready_p()) {
         char temp_char = ir_uart_getc();
@@ -173,10 +201,18 @@ char set_num_rounds(void)
 {
     scrolling_text("How many rounds?\0");
     char roundOptions[] = {'1', '3', '5', '7', '9'};
-    char numRounds = '0';
+    uint8_t numOptions = 5;
+
+    selectAndDisplayOptions(roundOptions, numOptions, DUAL);
+    matrix_init();
+
+    scrolling_text("Chosen:\0");
+
 
     // need to figure out a way to display first then capture
     // ######### currently you need to push down to access the rounds!!!
+
+    /*
     while (1) {
         pacer_wait();
         navswitch_update();
@@ -190,9 +226,10 @@ char set_num_rounds(void)
             // set to this value
             //break;
         }
+        
+
     }
 
-    scrolling_text("Chosen:\0");
     
     while(1) {
         pacer_wait();
@@ -205,6 +242,7 @@ char set_num_rounds(void)
     }
 
     return numRounds;
+    */
 }
 
 
