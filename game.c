@@ -139,11 +139,12 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
                 return states[state];
             }
         } else if (mode == DUAL) {
+            char character;
             if (tick > PACER_RATE / 20) {
                 tick = 0;
-                char character = send_char(states[state]);
+                character = send_char(states[state]);
             } else {
-                char character = receive_char(states[n-1], states[0]);
+                character = receive_char(states[n-1], states[0]);
             }
 
             if (character != NULLCHAR) {
