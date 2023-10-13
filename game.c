@@ -95,7 +95,6 @@ void displayTutorial(void)
     scrolling_text("Scissors\0");
     show_display(&display_west_arrow, WEST);
     show_display(&display_scissors, WEST);
-    
 }
 
 void scrolling_text(char* text)
@@ -140,7 +139,7 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
             }
         } else if (mode == DUAL) {
             char character;
-            if (tick > PACER_RATE / 20) {
+            if (tick > PACER_RATE / 400) {
                 tick = 0;
                 character = send_char(states[state]);
             } else {
@@ -156,6 +155,24 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 
 }
 
+void wait_both_ready() {
+    init_text("Waiting for other player...");
+    uint8_t tick = 0;
+    while (1) {
+        pacer_wait();
+        disp_text();
+        tick += 1;
+        if (tick > PACER_RATE / 400) {
+                tick = 0;
+                character = send_char(states[state]);
+            } else {
+                character = receive_char(states[n-1], states[0]);
+        }
+
+
+    }
+}
+
 /*Displays welcome message and tutorial*/
 void game_welcome(void)
 {
@@ -169,6 +186,9 @@ void game_welcome(void)
     if (character == 'Y') {
         displayTutorial();
     }
+
+    wait_both_ready();
+
 
 }
 
@@ -204,10 +224,12 @@ char set_num_rounds(void)
     char roundOptions[] = {'1', '3', '5', '7', '9'};
     uint8_t numOptions = 5;
 
-    selectAndDisplayOptions(roundOptions, numOptions, DUAL);
+    char character = selectAndDisplayOptions(roundOptions, numOptions, DUAL);
     matrix_init();
-
-    scrolling_text("Chosen:\0");
+    
+    char result[11] = "Chosen 0 \0";
+    result[7] = character;
+    scrolling_text(result);
 
 
     // need to figure out a way to display first then capture
