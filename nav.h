@@ -11,6 +11,7 @@
 #define SOUTH 3
 #define WEST 4
 #define PUSH 5
+#define ANY 6
 
 /* Returns value of direction if the navswitch has been moved, otherwise returns 0*/
 int8_t direction_moved(void); 

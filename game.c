@@ -26,7 +26,7 @@
 #define MINIMUM_ASCII_VALUE 0
 #define NUMBER_OF_ICONS 3
 
-void show_display(void(*displayfunc)(void));
+void show_display(void(*displayfunc)(void), uint8_t direction);
 void displayTutorial(void);
 void scrolling_text(char* text);
 char selectAndDisplayOptions(char* states, uint8_t n);
@@ -46,13 +46,13 @@ void init_all(void)
 }
 
 
-void show_display(void(*displayfunc)(void))
+void show_display(void(*displayfunc)(void), uint8_t direction)
 {
     while(1) {
         pacer_wait();
         displayfunc();
         navswitch_update();
-        if (direction_moved() != 0) {
+        if (((direction_moved() != 0) && direction == ANY) || (direction_moved() == direction)){
             matrix_init();
             break;
         }
@@ -83,23 +83,23 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
 void displayTutorial(void)
 {
     scrolling_text("Rock\0");
-    show_display(&display_north_arrow);
-    show_display(&display_rock);
+    show_display(&display_north_arrow, NORTH);
+    show_display(&display_rock, NORTH);
 
     scrolling_text("Paper\0");
-    show_display(&display_east_arrow);
-    show_display(&display_paper);
+    show_display(&display_east_arrow, EAST);
+    show_display(&display_paper, EAST);
 
     scrolling_text("Scissors\0");
-    show_display(&display_west_arrow);
-    show_display(&display_scissors);
+    show_display(&display_west_arrow, WEST);
+    show_display(&display_scissors, WEST);
     
 }
 
 void scrolling_text(char* text)
 {
     init_text(text);
-    show_display(&disp_text);
+    show_display(&disp_text, ANY);
 
 }
 
@@ -188,7 +188,7 @@ char set_num_rounds(void)
             numRounds = receive_char('1', '9');
             // got to check if it's 2, 3, 6 or 8
             // set to this value
-            break;
+            //break;
         }
     }
 
