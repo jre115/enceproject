@@ -43,7 +43,6 @@ void init_all(void)
     matrix_init();
     navswitch_init ();
     ir_uart_init();
-    our_timer_init();
 }
 
 
@@ -66,9 +65,18 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
 
     TCNT1 = 0;
     while (TCNT1 < ticks) {
+        // push event:
+        // do this
         displayfunc();
     }
     matrix_init();
+
+    // overarching loop
+    // run ticks
+    // can just turn LED on, then turn off when doing IR stuff
+    // make it fast enough that it looks like the display is always on,
+    // inbetween this time though check for navswitch flicks which will set the users option
+    // will need to change how this is done so that it works in the big loop.
 
 }
 
@@ -98,6 +106,7 @@ void scrolling_text(char* text)
 // JR note move this to user input .c??
 char selectAndDisplayOptions(char* states, uint8_t n)
 {
+    // add uart in here
     uint8_t state = 0;
     matrix_init();
     while (1) {
@@ -179,7 +188,19 @@ char set_num_rounds(void)
             numRounds = receive_char('1', '9');
             // got to check if it's 2, 3, 6 or 8
             // set to this value
-            disp_character(numRounds);
+            break;
+        }
+    }
+
+    scrolling_text("Chosen:\0");
+    
+    while(1) {
+        pacer_wait();
+        disp_character(numRounds);
+        navswitch_update();
+        if (direction_moved() != 0) {
+            matrix_init();
+            break;
         }
     }
 
