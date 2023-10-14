@@ -139,10 +139,9 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
             }
         } else if (mode == DUAL) {
             char character;
-            if (tick > PACER_RATE / 400) {
-                tick = 0;
+            if (tick % 500 == 0) {
                 character = send_char(states[state]);
-            } else {
+            } else if (tick % 500 == 250) {
                 character = receive_char(states[n-1], states[0]);
             }
 
@@ -155,23 +154,27 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 
 }
 
-void wait_both_ready() {
-    init_text("Waiting for other player...");
-    uint8_t tick = 0;
+void wait_both_ready(void) {
+    init_text("Waiting for other player...\0");
+    uint16_t tick = 0;
+    char character;
+
     while (1) {
         pacer_wait();
         disp_text();
+
         tick += 1;
-        if (tick > PACER_RATE / 400) {
-                tick = 0;
-                character = send_char(states[state]);
-            } else {
-                character = receive_char(states[n-1], states[0]);
+        if (tick % 500 == 0) {  // Send every second
+            ir_uart_putc('R');
+        } else if (tick % 500 == 250) {  // Receive every second starting from 0.5 seconds
+            character = receive_char('R', 'R');
+            if (character != NULLCHAR) {
+                return;
+            }
         }
-
-
     }
 }
+
 
 /*Displays welcome message and tutorial*/
 void game_welcome(void)
