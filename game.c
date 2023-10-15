@@ -28,6 +28,9 @@
 #define MINIMUM_ASCII_VALUE 0
 #define NUMBER_OF_ICONS 3
 
+#define RECEVPLAYER2 '8'
+#define RECEVPLAYER1 '6'
+
 void show_display(void(*displayfunc)(void), uint8_t direction);
 void displayTutorial(void);
 void scrolling_text(char* text);
@@ -168,6 +171,7 @@ int wait_both_ready(void) {
     uint16_t tick = 0;
     char character;
     uint16_t timeout = 7500;
+    uint16_t sendRate = 125;
 
     while (1) {
         tick += 1;
@@ -176,15 +180,15 @@ int wait_both_ready(void) {
 
         if (ir_uart_read_ready_p()) {
             character = ir_uart_getc();
-            if (character == '2') {
-                ir_uart_putc(1);
+            if (character == RECEVPLAYER2) {
+                ir_uart_putc(RECEVPLAYER1);
                 return 2;
             } else {
                 return 1;
             }
             
-        } else if (tick % 500 == 250) {
-            ir_uart_putc('2');
+        } else if (tick % sendRate == 0) { // sends 1 every quarter second
+            ir_uart_putc(RECEVPLAYER2);
         }
 
         // can leave the loop after 15 seconds
