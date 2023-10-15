@@ -119,17 +119,16 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
     // add uart in here
     uint8_t state = 0;
     matrix_init();
-    uint8_t tick = 0;
+    uint16_t tick = 0;
     char character;
+    navswitch_update();
 
-    uint16_t sendRate = 125;
+    uint16_t sendRate = 20;
 
 
     
     while (1) {
-        tick += 1;
         pacer_wait();
-        navswitch_update();
 
         disp_character(states[state]);
         disp_text();
@@ -137,34 +136,36 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 
         if (mode == DUAL && ir_uart_read_ready_p()) {
             character = ir_uart_getc();
-            state = (int)character;
-        } else if (tick > PACER_RATE / sendRate) {
-            tick = 0;
-            
-        }
-
-        //disp_text();
-
-        //disp_character(states[state]);
-
-        // for cycling through options and displaying the current in the array
-        if (is_goal_nav(EAST)) {
-            state = (state + 1) % n;
-            if (mode == DUAL) {
-                ir_uart_putc((char)state);
-            }
-            
-        } else if (is_goal_nav(WEST)) {
-            state = (state - 1 + n) % n;
-            if (mode == DUAL) {
-                ir_uart_putc((char)state);
-            }
-        }
-
-        if (is_goal_nav(PUSH)) {
-                matrix_init();
+            if (character != 'P') {
+                state = (int)character;
+            } else {
                 return states[state];
+            }
+            
+        } else if (tick > PACER_RATE / sendRate) {
+            navswitch_update();
+
+            tick = 0;
+            if (is_goal_nav(EAST)) {
+                state = (state + 1) % n;
+                if (mode == DUAL) {
+                    ir_uart_putc((char)state);
+                }
+            } else if (is_goal_nav(WEST)) {
+                state = (state - 1 + n) % n;
+                if (mode == DUAL) {
+                    ir_uart_putc((char)state);
+                }
+            } else if (is_goal_nav(PUSH)) {
+                matrix_init();
+                if (mode == DUAL) {
+                    ir_uart_putc('P');
+                }
+                return states[state];
+            }
+            
         }
+        tick += 1;
     
     }
 
@@ -176,7 +177,7 @@ int wait_both_ready(void) {
     uint16_t totalCount = 0;
     char character;
     uint16_t timeout = 7500;
-    uint16_t sendRate = 20;
+    uint16_t sendRate = 50;
 
     while (totalCount < timeout) {
         tick += 1;
@@ -196,6 +197,10 @@ int wait_both_ready(void) {
             tick = 0;
             ir_uart_putc(RECEVPLAYER2);
         }
+    }
+
+    if (direction_moved != 0) {
+        return;
     }
 }
 
