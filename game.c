@@ -110,44 +110,53 @@ typedef enum {
 } displayMode_t;
 
 // JR note move this to user input .c??
+
 char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 {
     // add uart in here
     uint8_t state = 0;
     matrix_init();
-    uint8_t tick = 0;
+    //uint8_t tick = 0;
+    char character;
 
+    
     while (1) {
-        tick += 1;
+        //tick += 1;
         pacer_wait();
         navswitch_update();
+
+        disp_character(states[state]);
         disp_text();
-        
+
+
+        if (mode == DUAL && ir_uart_read_ready_p()) {
+            character = ir_uart_getc();
+            state = (int)character;
+        } else {
+            
+        }
+
+        //disp_text();
+
+        //disp_character(states[state]);
+
         // for cycling through options and displaying the current in the array
         if (is_goal_nav(EAST)) {
             state = (state + 1) % n;
+            if (mode == DUAL) {
+                ir_uart_putc((char)state);
+            }
+            
         } else if (is_goal_nav(WEST)) {
             state = (state - 1 + n) % n;
+            if (mode == DUAL) {
+                ir_uart_putc((char)state);
+            }
         }
 
-        disp_character(states[state]);
-
-        if (mode == INDIVIDUAL) {
-            if (is_goal_nav(PUSH)) {
+        if (is_goal_nav(PUSH)) {
                 matrix_init();
                 return states[state];
-            }
-        } else if (mode == DUAL) {
-            char character;
-            if (tick % 500 == 0) {
-                character = send_char(states[state]);
-            } else if (tick % 500 == 250) {
-                character = receive_char(states[n-1], states[0]);
-            }
-
-            if (character != NULLCHAR) {
-                return character;
-            }
         }
     
     }
