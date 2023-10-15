@@ -163,35 +163,34 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 
 }
 
-void wait_both_ready(void) {
+int wait_both_ready(void) {
     init_text("Waiting for other player...\0");
     uint16_t tick = 0;
     char character;
     uint16_t timeout = 7500;
 
     while (1) {
+        tick += 1;
         pacer_wait();
         disp_text();
 
-        tick += 1;
-        if (tick % 500 == 0) {  // Send every second
-            ir_uart_putc('R');
-        } else if (tick % 500 == 250) {  // Receive every second starting from 0.5 seconds
-            character = receive_char('R', 'R');
-            if (character != NULLCHAR) {
-                uint16_t i = 0;
-                while (i < 100) {
-                    i += 1;
-                    ir_uart_putc('R');
-                }
-                return;
+        if (ir_uart_read_ready_p()) {
+            character = ir_uart_getc();
+            if (character == '2') {
+                ir_uart_putc(1);
+                return 2;
+            } else {
+                return 1;
             }
+            
+        } else if (tick % 500 == 250) {
+            ir_uart_putc('2');
         }
 
-        // can leave the loop after certain timeout
+        // can leave the loop after 15 seconds
         if (tick > timeout) {
             if (direction_moved() != 0) {
-
+                return 0;
             }
         }
     }
