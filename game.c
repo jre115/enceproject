@@ -119,12 +119,15 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
     // add uart in here
     uint8_t state = 0;
     matrix_init();
-    //uint8_t tick = 0;
+    uint8_t tick = 0;
     char character;
+
+    uint16_t sendRate = 125;
+
 
     
     while (1) {
-        //tick += 1;
+        tick += 1;
         pacer_wait();
         navswitch_update();
 
@@ -135,7 +138,8 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
         if (mode == DUAL && ir_uart_read_ready_p()) {
             character = ir_uart_getc();
             state = (int)character;
-        } else {
+        } else if (tick > PACER_RATE / sendRate) {
+            tick = 0;
             
         }
 
@@ -169,12 +173,14 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 int wait_both_ready(void) {
     init_text("Waiting for other player...\0");
     uint16_t tick = 0;
+    uint16_t totalCount = 0;
     char character;
     uint16_t timeout = 7500;
-    uint16_t sendRate = 125;
+    uint16_t sendRate = 20;
 
-    while (1) {
+    while (totalCount < timeout) {
         tick += 1;
+        totalCount += 1;
         pacer_wait();
         disp_text();
 
@@ -186,16 +192,9 @@ int wait_both_ready(void) {
             } else {
                 return 1;
             }
-            
-        } else if (tick % sendRate == 0) { // sends 1 every quarter second
+        } else if (tick > PACER_RATE / sendRate) {
+            tick = 0;
             ir_uart_putc(RECEVPLAYER2);
-        }
-
-        // can leave the loop after 15 seconds
-        if (tick > timeout) {
-            if (direction_moved() != 0) {
-                return 0;
-            }
         }
     }
 }
