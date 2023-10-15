@@ -158,6 +158,7 @@ void wait_both_ready(void) {
     init_text("Waiting for other player...\0");
     uint16_t tick = 0;
     char character;
+    uint16_t timeout = 7500;
 
     while (1) {
         pacer_wait();
@@ -169,7 +170,19 @@ void wait_both_ready(void) {
         } else if (tick % 500 == 250) {  // Receive every second starting from 0.5 seconds
             character = receive_char('R', 'R');
             if (character != NULLCHAR) {
+                uint16_t i = 0;
+                while (i < 100) {
+                    i += 1;
+                    ir_uart_putc('R');
+                }
                 return;
+            }
+        }
+
+        // can leave the loop after certain timeout
+        if (tick > timeout) {
+            if (direction_moved() != 0) {
+
             }
         }
     }
