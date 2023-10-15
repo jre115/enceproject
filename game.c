@@ -31,6 +31,8 @@
 #define RECEVPLAYER2 '8'
 #define RECEVPLAYER1 '6'
 
+uint8_t prevDir;
+
 void show_display(void(*displayfunc)(void), uint8_t direction);
 void displayTutorial(void);
 void scrolling_text(char* text);
@@ -70,8 +72,14 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
 
     TCNT1 = 0;
     while (TCNT1 < ticks) {
+        navswitch_update();
         // push event:
         // do this
+        uint8_t direction = direction_moved();
+        if (direction != 0) {
+            prevDir = direction;
+            PORTC |= (1 << 2); // led on
+        }
         displayfunc();
     }
     matrix_init();
@@ -82,7 +90,6 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
     // make it fast enough that it looks like the display is always on,
     // inbetween this time though check for navswitch flicks which will set the users option
     // will need to change how this is done so that it works in the big loop.
-
 }
 
 void displayTutorial(void)
@@ -177,7 +184,7 @@ int wait_both_ready(void) {
     uint16_t totalCount = 0;
     char character;
     uint16_t timeout = 7500;
-    uint16_t sendRate = 50;
+    uint16_t sendRate = 20;
 
     while (totalCount < timeout) {
         tick += 1;
@@ -303,17 +310,51 @@ char set_num_rounds(void)
 
 void icon_countdown(void) 
 {
+    navswitch_init();
+    DDRC |= (1 << 2); // led init
+    PORTC &= ~(1 << 2); // led of
+
+    prevDir = 0;
+
     timed_display(&display_paper, PSR_COUNTDOWN_TIME);
     timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
     timed_display(&display_rock, PSR_COUNTDOWN_TIME);
+
+    pacer_wait();
+    if (prevDir == NORTH) {
+        timed_display(&display_rock, PSR_COUNTDOWN_TIME);
+    } else if (prevDir == EAST) {
+        timed_display(&display_paper, PSR_COUNTDOWN_TIME);
+    } else if (prevDir == WEST) {
+        timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
+    } else {
+        timed_display(&display_none, PSR_COUNTDOWN_TIME);
+    }
+
+    ir_uart_putc((char)prevDir);
+    uint8_t other = ir_uart_getc();
+
+    if (other == (char)prevDir) {
+        timed_display(&display_rock, PSR_COUNTDOWN_TIME);  // currently for testin rock if draw
+    } else if (other == '0' || (other == '1' && prevDir == WEST)) {
+        timed_display(&display_rock, PSR_COUNTDOWN_TIME);  // currently for testin scissors  if win
+    } 
 }
+
+#define NORTH 1
+#define EAST 2
+#define SOUTH 3
+#define WEST 4
+#define PUSH 5
+#define ANY 6
 
 void game_start(char roundsChar)
 {
     uint8_t rounds = roundsChar - '0';
+    scrolling_text("Ready?\0");
     for (uint8_t i = 0; i < rounds; i++) {
         // play a game of paper sissors rock and display winner
-        scrolling_text("Ready?\0");
+        wait_both_ready();
         icon_countdown();
         
     }

@@ -113,6 +113,12 @@ void display_north_arrow(void)
     display_shape(bitmap);
 }
 
+void display_none(void)
+{
+    uint8_t bitmap[] = {0x0, 0x0, 0x0, 0x0, 0x0};
+    display_shape(bitmap);
+}
+
 void display_east_arrow(void)
 {
     uint8_t bitmap[] = {0x08, 0x08, 0x2A, 0x1C, 0x08};

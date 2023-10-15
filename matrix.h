@@ -30,4 +30,6 @@ void display_east_arrow(void);
 
 void display_west_arrow(void);
 
+void display_none(void);
+
 #endif //MATRIX_H
