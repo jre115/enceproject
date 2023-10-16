@@ -36,7 +36,10 @@
 #define SOUTH 3
 #define WEST 4
 #define PUSH 5
-#define ANY 6
+
+#define PLAYER1 'A'
+#define PLAYER2 'E'
+
 
 uint8_t prevDir;
 
@@ -44,12 +47,12 @@ void show_display(void(*displayfunc)(void), uint8_t direction);
 void displayTutorial(void);
 void scrolling_text(char* text);
 //char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode);
-void game_welcome(void);
+char game_welcome(void);
 char send_char(char character);
 char receive_char(char upperBound, char lowerBound);
 char set_num_rounds(void);
 void rotate_through_icons(void);
-void game_start(char roundsChar);
+void game_start(char roundsChar, char player);
 
 void init_all(void)
 {
@@ -151,7 +154,7 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
         if (mode == DUAL && ir_uart_read_ready_p()) {
             character = ir_uart_getc();
             if (character != 'P') {
-                state = (int)character;
+                state = character - '0'; /// JR NOTE FIX THIS ?? ??? 
             } else {
                 return states[state];
             }
@@ -163,12 +166,12 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
             if (is_goal_nav(EAST)) {
                 state = (state + 1) % n;
                 if (mode == DUAL) {
-                    ir_uart_putc((char)state);
+                    ir_uart_putc(state);
                 }
             } else if (is_goal_nav(WEST)) {
                 state = (state - 1 + n) % n;
                 if (mode == DUAL) {
-                    ir_uart_putc((char)state);
+                    ir_uart_putc(state);
                 }
             } else if (is_goal_nav(PUSH)) {
                 matrix_init();
@@ -185,13 +188,97 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 
 }
 
-int wait_both_ready(void) {
+
+void wait(char player) {
+
+     
+    init_text("Waiting for other player...\0");
+    uint16_t tick = 0;
+    char character;
+    uint16_t sendRate = 20;
+    navswitch_init();
+    //uint16_t counter = 0;
+    uint8_t recev = 0;
+
+
+
+    if (player == PLAYER1) {
+        while(recev == 0) {
+            tick += 1;
+            disp_text();
+            pacer_wait();
+            if (tick > PACER_RATE / sendRate) {
+                tick = 0;
+                ir_uart_putc(player);
+            }
+    
+            if (ir_uart_read_ready_p()) {
+                character = ir_uart_getc();
+                if (character == PLAYER2) {
+                    recev = 1;
+                }
+            }
+        }
+    } else if (player == PLAYER2) {
+        while (recev == 0) {
+            disp_text();
+            pacer_wait();
+            if (ir_uart_read_ready_p()) {
+                character = ir_uart_getc();
+                if (character == PLAYER1) {
+                    recev = 1;
+                }
+            }
+        }
+
+        ir_uart_putc(player);
+
+
+    }
+}
+
+char player1_player2(void)
+{
+    int current = 0;
+    int decided = 0; 
+    char player = 'A';
+    char sendChar = 'B';
+
+    while (!decided) {
+        PORTC |= (1 << 2); /// remove this
+
+        navswitch_update();
+        
+        if (direction_moved() != 0) {
+            decided = 1;
+            ir_uart_putc(sendChar);
+            current = PLAYER1;
+        }
+
+        if (ir_uart_read_ready_p()) {
+            player = ir_uart_getc();
+        } if (player == 'B') {
+            decided = 1;
+            current = PLAYER2;
+        }
+    }
+
+    PORTC &= ~(1 << 2); // led off
+    return current;
+}
+
+
+/*
+
+void wait_both_ready(void) {
     init_text("Waiting for other player...\0");
     uint16_t tick = 0;
     uint16_t totalCount = 0;
     char character;
     uint16_t timeout = 7500;
-    uint16_t sendRate = 20;
+    uint16_t sendRate = 10;
+    navswitch_init();
+    ir_uart_init();
 
     while (totalCount < timeout) {
         tick += 1;
@@ -213,15 +300,19 @@ int wait_both_ready(void) {
         }
     }
 
-    if (direction_moved != 0) {
-        return;
-    }
 }
+*/
 
 
 /*Displays welcome message and tutorial*/
-void game_welcome(void)
+char game_welcome(void)
 {
+    char player = player1_player2();
+    if (player == PLAYER1) {
+        PORTC |= (1 << 2);
+    }
+
+
     scrolling_text("Welcome to PSR! Move to start\0");
     scrolling_text("View tutorial?\0");
 
@@ -233,9 +324,9 @@ void game_welcome(void)
         displayTutorial();
     }
 
-    wait_both_ready();
+    wait(player);
 
-
+    return player;
 }
 
 char send_char(char character)
@@ -277,6 +368,7 @@ char set_num_rounds(void)
     result[7] = character;
     scrolling_text(result);
 
+    return character;
 }
 
 #define OTHER_ROCK '0'
@@ -284,33 +376,10 @@ char set_num_rounds(void)
 #define OTHER_SCISSORS '2'
 #define ROCK NORTH
 #define PAPER EAST
-#define SCISSORS WEST
 
 
 void icon_countdown(void) 
 {
-    navswitch_init();
-    DDRC |= (1 << 2); // led init
-    PORTC &= ~(1 << 2); // led of
-
-    prevDir = 0;
-
-    timed_display(&display_paper, PSR_COUNTDOWN_TIME);
-    timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
-    timed_display(&display_rock, PSR_COUNTDOWN_TIME);
-
-    pacer_wait();
-    if (prevDir == NORTH) {
-        timed_display(&display_rock, PSR_COUNTDOWN_TIME);
-    } else if (prevDir == EAST) {
-        timed_display(&display_paper, PSR_COUNTDOWN_TIME);
-    } else if (prevDir == WEST) {
-        timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
-    } else {
-        timed_display(&display_none, PSR_COUNTDOWN_TIME);
-    }
-
-    ir_uart_putc((char)prevDir);
     uint8_t other = ir_uart_getc();
 
     if (other == (char)prevDir) {
@@ -343,15 +412,15 @@ void icon_countdown(void)
             scrolling_text("WIN");
         }
     }
-}
 
-void game_start(char roundsChar)
+
+void game_start(char roundsChar, char player)
 {
     uint8_t rounds = roundsChar - '0';
     scrolling_text("Ready?\0");
     for (uint8_t i = 0; i < rounds; i++) {
         // play a game of paper sissors rock and display winner
-        wait_both_ready();
+        wait(player);
         icon_countdown();
         
     }
@@ -364,10 +433,10 @@ int main (void)
     init_all();
     pacer_init(PACER_RATE);
 
-    game_welcome(); // whoop whoop this is all good :)
+   char player = game_welcome(); // whoop whoop this is all good :)
     
     char numRounds = set_num_rounds();
-    game_start(numRounds);
+    game_start(numRounds, player);
 
     //start_game();
     //setup_game();
