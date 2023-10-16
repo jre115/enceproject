@@ -31,6 +31,13 @@
 #define RECEVPLAYER2 '8'
 #define RECEVPLAYER1 '6'
 
+#define NORTH 1
+#define EAST 2
+#define SOUTH 3
+#define WEST 4
+#define PUSH 5
+#define ANY 6
+
 uint8_t prevDir;
 
 void show_display(void(*displayfunc)(void), uint8_t direction);
@@ -270,42 +277,14 @@ char set_num_rounds(void)
     result[7] = character;
     scrolling_text(result);
 
-
-    // need to figure out a way to display first then capture
-    // ######### currently you need to push down to access the rounds!!!
-
-    /*
-    while (1) {
-        pacer_wait();
-        navswitch_update();
-        if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
-            // set to user of this boards value
-            numRounds = selectAndDisplayOptions(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS);
-            break;
-        } else if (ir_uart_read_ready_p()) {
-            numRounds = receive_char('1', '9');
-            // got to check if it's 2, 3, 6 or 8
-            // set to this value
-            //break;
-        }
-        
-
-    }
-
-    
-    while(1) {
-        pacer_wait();
-        disp_character(numRounds);
-        navswitch_update();
-        if (direction_moved() != 0) {
-            matrix_init();
-            break;
-        }
-    }
-
-    return numRounds;
-    */
 }
+
+#define OTHER_ROCK '0'
+#define OTHER_PAPER '1'
+#define OTHER_SCISSORS '2'
+#define ROCK NORTH
+#define PAPER EAST
+#define SCISSORS WEST
 
 
 void icon_countdown(void) 
@@ -335,18 +314,36 @@ void icon_countdown(void)
     uint8_t other = ir_uart_getc();
 
     if (other == (char)prevDir) {
-        timed_display(&display_rock, PSR_COUNTDOWN_TIME);  // currently for testin rock if draw
-    } else if (other == '0' || (other == '1' && prevDir == WEST)) {
-        timed_display(&display_rock, PSR_COUNTDOWN_TIME);  // currently for testin scissors  if win
-    } 
-}
+        if (prevDir == NORTH) {
+            timed_display(&display_rock, PSR_COUNTDOWN_TIME);  // if rock draw
+        } else if (prevDir == EAST) {
+            timed_display(&display_paper, PSR_COUNTDOWN_TIME);  // if paper draw
+        } else if (prevDir == WEST) {
+            timed_display(&display_scissors, PSR_COUNTDOWN_TIME);  // if scissors draw
+        }
+        
+    } else if (other == OTHER_ROCK) {
+        if (prevDir == SCISSORS) {
+            scrolling_text("LOSE");
+        } else if (prevDir == PAPER) {
+            scrolling_text("WIN");
+        }
 
-#define NORTH 1
-#define EAST 2
-#define SOUTH 3
-#define WEST 4
-#define PUSH 5
-#define ANY 6
+    } else if (other == OTHER_PAPER) {
+        if (prevDir == ROCK) {
+            scrolling_text("LOSE");
+        } else if (prevDir == SCISSORS) {
+            scrolling_text("WIN");
+        }
+
+    } else if (other == OTHER_SCISSORS) {
+        if (prevDir == PAPER) {
+            scrolling_text("LOSE");
+        } else if (prevDir == ROCK) {
+            scrolling_text("WIN");
+        }
+    }
+}
 
 void game_start(char roundsChar)
 {
