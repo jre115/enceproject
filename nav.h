@@ -14,6 +14,9 @@
 #define ANY '6'
 #define NO_DIRECTION '0'
 
+#define TRUE 1
+#define FALSE 0
+
 /* Returns value of direction if the navswitch has been moved, otherwise returns 0*/
 char direction_moved(void); 
 /* returns 1 if the direction pushed matches the desired direction*/
