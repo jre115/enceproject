@@ -163,7 +163,6 @@ int8_t game_start(char rounds_char, char player)
 
     uint8_t round = 0;
 
-
     int8_t player_score = 0;
     while (round < rounds) {
         // reset light and selected moves at the start of each round
@@ -202,6 +201,7 @@ char game_welcome(void)
     displays_scrolling_text("View tutorial?\0");
     char options[NUMBER_OF_CHOICES_FOR_START] = {'Y', 'N'};
     char character = game_select_and_display_options(options, NUMBER_OF_CHOICES_FOR_START, INDIVIDUAL);
+    
     if (character == 'Y') {
         displays_tutorial();
     }
