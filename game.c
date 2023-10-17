@@ -43,6 +43,7 @@
 
 static char prevDir = NO_DIRECTION;
 static char other = NO_DIRECTION;
+static int8_t playerScore = 0;
 
 void show_display(void(*displayfunc)(void), char direction);
 void displayTutorial(void);
@@ -115,6 +116,7 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
     uint16_t tick = 0;
     char character;
     navswitch_update();
+    ir_uart_init();
 
     uint16_t sendRate = 20; // #define??
 
@@ -324,9 +326,7 @@ void icon_countdown(void)
 
 }
 
-
-void game_result(void) {
-
+void display_own(void) {
     pacer_wait();
     if (prevDir == ROCK) {
         timed_display(&display_rock, YOUR_CHOICE_TIME);
@@ -337,38 +337,51 @@ void game_result(void) {
     } else {
         timed_display(&display_none, YOUR_CHOICE_TIME);
     }
-
-
-
+}
+int8_t game_result(void) {
+    int8_t result = 0;
     if (other == prevDir) {
-        timed_display(&display_draw_face, RESULT_DISPLAY_TIME);
-        
+        result = 0;
+    } else if (other == NO_DIRECTION) {
+        result = 1;
+    } else if (prevDir == NO_DIRECTION) {
+        result = -1;
+        playerScore = playerScore + 1;
     } else if (other == ROCK) {
         if (prevDir == SCISSORS) {
-            timed_display(&display_sad_face, RESULT_DISPLAY_TIME);
+            result = -1;
         } else if (prevDir == PAPER) {
-            timed_display(&display_smiley_face, RESULT_DISPLAY_TIME);
+            result = 1;
         }
-
     } else if (other == PAPER) {
         if (prevDir == ROCK) {
-            timed_display(&display_sad_face, RESULT_DISPLAY_TIME);
+            result = -1;
         } else if (prevDir == SCISSORS) {
-            timed_display(&display_smiley_face, RESULT_DISPLAY_TIME);
+            result = 1;
         }
 
     } else if (other == SCISSORS) {
         if (prevDir == PAPER) {
-            timed_display(&display_sad_face, RESULT_DISPLAY_TIME);
+            result = -1;
         } else if (prevDir == ROCK) {
-            timed_display(&display_smiley_face, RESULT_DISPLAY_TIME);
+            result = 1;
         }
-    } else {
-        // if one or neither do not do anything get here!
-        timed_display(&display_sand_timer, RESULT_DISPLAY_TIME);
     }
 
+    return result;
 }
+
+void display_game_result(int8_t result) 
+{
+    if (result == -1) {
+        timed_display(&display_sad_face, RESULT_DISPLAY_TIME);
+    } else if (result == 0) {
+        timed_display(&display_draw_face, RESULT_DISPLAY_TIME);
+    } else if (result == 1) {
+        timed_display(&display_smiley_face, RESULT_DISPLAY_TIME);
+    }
+}
+
 
 
 void game_start(char roundsChar, char player)
@@ -377,13 +390,99 @@ void game_start(char roundsChar, char player)
     // PORTC &= ~(1 << 2); // led off
     scrolling_text("Ready?\0");
     wait(player);
-    for (uint8_t i = 0; i < rounds; i++) {
+    uint8_t round = 0;
+    while (round < rounds) {
         // play a game of paper sissors rock and display winner
+        PORTC &= ~(1 << 2);
+        other = NO_DIRECTION;
+        prevDir = NO_DIRECTION;
         icon_countdown();
-        game_result();
-        
+        display_own();
+        int8_t result = game_result();
+
+        // if there is a tie, you redo it ! so add another round
+        if (result == 0) {
+            rounds += 1;
+        } else {
+            display_game_result(result);
+        }
+        round++;
+
     }
 }
+
+char send_receive(char player, char message)
+{
+    char receivedMessage = NO_DIRECTION;
+
+    if (player == PLAYER1) {
+        ir_uart_putc(message);
+        pacer_wait();
+        receivedMessage = ir_uart_getc();
+    } else if (player == PLAYER2) {
+        receivedMessage = ir_uart_getc();
+        pacer_wait();
+        ir_uart_putc(message);
+    }
+
+    return receivedMessage;
+    
+}
+
+
+
+/*
+char send_receive(char player, char message)
+{   
+    char received_message;
+    int16_t ticks = 0;
+    char tempPlayer = player;
+    
+    while (1) {
+        pacer_wait();
+        if (tempPlayer == PLAYER1) {
+            // Player 1 sends messages at 500 Hz for 1 second
+            if (ticks < 500) {
+                ir_uart_putc(message);
+                pacer_wait();received_message
+            } else {
+                tempPlayer = PLAYER2;  // Switch roles
+            }
+        } else if (tempPlayer == PLAYER2) {
+            if (ir_uart_read_ready_p()) {
+                received_message = ir_uart_getc();
+                if (player == PLAYER1) {
+                    break;
+                } else {
+                    tempPlayer = PLAYER1;  // Switch roles
+                }
+                
+            }
+
+            }
+            
+        }
+        return received_message;
+
+}
+*/
+
+void disp_overall_result(char player)
+{
+    char playerScoreAsChar = playerScore + '0';
+    char otherScore = send_receive(player, playerScoreAsChar);
+
+    if (playerScoreAsChar > otherScore) {
+        char result[12] = "Winner: 0 \0";
+        result[8] = playerScoreAsChar;
+        scrolling_text(result);
+    } else {
+        char result[12] = "Loser: 0 \0";
+        result[7] = playerScoreAsChar;
+        scrolling_text(result);
+    }
+}
+
 
 
 
@@ -391,11 +490,31 @@ int main (void)
 {
     init_all();
     pacer_init(PACER_RATE);
-
+    int8_t playAgain;
     char player = game_welcome(); // whoop whoop this is all good :)
     
-    char numRounds = set_num_rounds();
-    game_start(numRounds, player);
+    do {
+        char numRounds = set_num_rounds();
+        game_start(numRounds, player);
+        
+        disp_overall_result(player);
+        
+        scrolling_text("Play Again?\0");
+
+        char options[] = {'Y', 'N'};
+
+        char character = selectAndDisplayOptions(options, 2, INDIVIDUAL);
+
+        if (character == 'Y') {
+            playAgain = 1;
+        } else {
+            playAgain = 0;
+        }
+
+        wait(player);
+
+    } while (playAgain);
+
 
     //start_game();
     //setup_game();
