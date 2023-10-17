@@ -23,6 +23,8 @@
 #define NULLCHAR '\0'
 
 #define PSR_COUNTDOWN_TIME 750
+#define YOUR_CHOICE_TIME 1500
+#define RESULT_DISPLAY_TIME 3000
 
 #define MAXIMUM_ASCII_VALUE 265
 #define MINIMUM_ASCII_VALUE 0
@@ -31,15 +33,6 @@
 #define RECEVPLAYER2 '8'
 #define RECEVPLAYER1 '6'
 
-#define NORTH 1
-#define EAST 2
-#define SOUTH 3
-#define WEST 4
-#define PUSH 5
-
-#define OTHER_ROCK '0'
-#define OTHER_PAPER '1'
-#define OTHER_SCISSORS '2'
 #define ROCK NORTH
 #define PAPER EAST
 #define SCISSORS WEST
@@ -48,10 +41,10 @@
 #define PLAYER2 'E'
 
 
-static uint8_t prevDir = 0;
-static char other;
+static char prevDir = NO_DIRECTION;
+static char other = NO_DIRECTION;
 
-void show_display(void(*displayfunc)(void), uint8_t direction);
+void show_display(void(*displayfunc)(void), char direction);
 void displayTutorial(void);
 void scrolling_text(char* text);
 //char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode);
@@ -71,13 +64,13 @@ void init_all(void)
 }
 
 
-void show_display(void(*displayfunc)(void), uint8_t direction)
+void show_display(void(*displayfunc)(void), char direction)
 {
     while(1) {
         pacer_wait();
         displayfunc();
         navswitch_update();
-        if (((direction_moved() != 0) && direction == ANY) || (is_goal_nav(direction))){
+        if (((direction_moved() != NO_DIRECTION) && direction == ANY) || (is_goal_nav(direction))){
             matrix_init();
             break;
         }
@@ -124,7 +117,6 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
     navswitch_update();
 
     uint16_t sendRate = 20; // #define??
-
 
     
     while (1) {
@@ -174,11 +166,9 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 
 void wait(char player) {
 
-     
-    init_text("Waiting for other player...\0");
     uint16_t tick = 0;
     char character;
-    uint16_t sendRate = 20;
+    uint16_t sendRate = 1;
     navswitch_init();
     uint8_t recev = 0;
 
@@ -187,7 +177,7 @@ void wait(char player) {
     if (player == PLAYER1) {
         while(recev == 0) {
             tick += 1;
-            disp_text();
+            display_sand_timer();
             pacer_wait();
             if (tick > PACER_RATE / sendRate) {
                 tick = 0;
@@ -203,7 +193,7 @@ void wait(char player) {
         }
     } else if (player == PLAYER2) {
         while (recev == 0) {
-            disp_text();
+            display_sand_timer();
             pacer_wait();
             if (ir_uart_read_ready_p()) {
                 character = ir_uart_getc();
@@ -213,6 +203,10 @@ void wait(char player) {
             }
         }
 
+        ir_uart_putc(player);
+        pacer_wait();
+        ir_uart_putc(player);
+        pacer_wait();
         ir_uart_putc(player);
 
     }
@@ -230,7 +224,7 @@ char player1_player2(void)
 
         navswitch_update();
         
-        if (direction_moved() != 0) {
+        if (direction_moved() != NO_DIRECTION) {
             decided = 1;
             ir_uart_putc(sendChar);
             current = PLAYER1;
@@ -274,31 +268,6 @@ char game_welcome(void)
     return player;
 }
 
-char send_char(char character)
-{
-    /* TODO: Transmit the character over IR on a NAVSWITCH_PUSH event.  */
-    if (navswitch_push_event_p(NAVSWITCH_PUSH)) {
-        ir_uart_putc(character);
-        return character;
-    }
-
-    return NULLCHAR;
-}
-
-
-char receive_char(char upperBound, char lowerBound)
-{
-    char character = NULLCHAR;
-    
-    if (ir_uart_read_ready_p()) {
-        char temp_char = ir_uart_getc();
-        if (temp_char >= lowerBound && temp_char <= upperBound) {
-            character = temp_char;
-        }
-    }
-    return character;
-}
-
 
 char set_num_rounds(void)
 {
@@ -320,11 +289,8 @@ char set_num_rounds(void)
 void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
 {
     uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
-    uint8_t direction;
+    char direction;
     matrix_init();
-
-
-    // uint8_t prevDir = 0;
 
     TCNT1 = 0;
     while (TCNT1 < ticks) {
@@ -335,7 +301,7 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
             other = ir_uart_getc();
         }
         direction = direction_moved();
-        if (direction != 0) {
+        if (direction != NO_DIRECTION) {
             prevDir = direction;
             ir_uart_putc(prevDir);
             PORTC |= (1 << 2); // led on
@@ -343,15 +309,6 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
         displayfunc();
     }
     matrix_init();
-
-    // return prevDir;
-
-    // overarching loop
-    // run ticks
-    // can just turn LED on, then turn off when doing IR stuff
-    // make it fast enough that it looks like the display is always on,
-    // inbetween this time though check for navswitch flicks which will set the users option
-    // will need to change how this is done so that it works in the big loop.
 }
 
 void icon_countdown(void) 
@@ -370,93 +327,46 @@ void icon_countdown(void)
 void game_result(void) {
 
     pacer_wait();
-    if (other == OTHER_ROCK) {
-        timed_display(&display_rock, PSR_COUNTDOWN_TIME);
-    } else if (other == OTHER_PAPER) {
-        timed_display(&display_paper, PSR_COUNTDOWN_TIME);
-    } else if (other == OTHER_SCISSORS) {
-        timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
-    } else {
-        timed_display(&display_none, PSR_COUNTDOWN_TIME);
-    }
-
-    pacer_wait();
-    if (prevDir == NORTH) {
-        timed_display(&display_rock, PSR_COUNTDOWN_TIME);
-    } else if (prevDir == EAST) {
-        timed_display(&display_paper, PSR_COUNTDOWN_TIME);
-    } else if (prevDir == WEST) {
-        timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
-    } else {
-        timed_display(&display_none, PSR_COUNTDOWN_TIME);
-    }
-
-
-
-
-
-
-
-
-
-
-    /*
-    char this_choice;
     if (prevDir == ROCK) {
-        this_choice = OTHER_ROCK;
+        timed_display(&display_rock, YOUR_CHOICE_TIME);
     } else if (prevDir == PAPER) {
-        this_choice = OTHER_PAPER;
+        timed_display(&display_paper, YOUR_CHOICE_TIME);
     } else if (prevDir == SCISSORS) {
-        this_choice = OTHER_SCISSORS;
+        timed_display(&display_scissors, YOUR_CHOICE_TIME);
     } else {
-        this_choice = 'N';
+        timed_display(&display_none, YOUR_CHOICE_TIME);
     }
 
-    matrix_init();
-    disp_character(prevDir);
-    while(1) {
-        disp_text();
-    }
-    
 
-    if (this_choice == 'N') {
-        scrolling_text("NOTHING\0");
-    }
 
-    if (other == this_choice) {
-        if (prevDir == NORTH) {
-            timed_display(&display_rock, PSR_COUNTDOWN_TIME);  // if rock draw
-        } else if (prevDir == EAST) {
-            timed_display(&display_paper, PSR_COUNTDOWN_TIME);  // if paper draw
-        } else if (prevDir == WEST) {
-            timed_display(&display_scissors, PSR_COUNTDOWN_TIME);  // if scissors draw
-        }
+    if (other == prevDir) {
+        timed_display(&display_draw_face, RESULT_DISPLAY_TIME);
         
-    } else if (other == OTHER_ROCK) {
+    } else if (other == ROCK) {
         if (prevDir == SCISSORS) {
-            scrolling_text("LOSE\0");
+            timed_display(&display_sad_face, RESULT_DISPLAY_TIME);
         } else if (prevDir == PAPER) {
-            scrolling_text("WIN\0");
+            timed_display(&display_smiley_face, RESULT_DISPLAY_TIME);
         }
 
-    } else if (other == OTHER_PAPER) {
+    } else if (other == PAPER) {
         if (prevDir == ROCK) {
-            scrolling_text("LOSE\0");
+            timed_display(&display_sad_face, RESULT_DISPLAY_TIME);
         } else if (prevDir == SCISSORS) {
-            scrolling_text("WIN\0");
+            timed_display(&display_smiley_face, RESULT_DISPLAY_TIME);
         }
 
-    } else if (other == OTHER_SCISSORS) {
+    } else if (other == SCISSORS) {
         if (prevDir == PAPER) {
-            scrolling_text("LOSE\0");
+            timed_display(&display_sad_face, RESULT_DISPLAY_TIME);
         } else if (prevDir == ROCK) {
-            scrolling_text("WIN\0");
+            timed_display(&display_smiley_face, RESULT_DISPLAY_TIME);
         }
     } else {
-        scrolling_text("NA\0");
+        // if one or neither do not do anything get here!
+        timed_display(&display_sand_timer, RESULT_DISPLAY_TIME);
     }
 
-    */
 }
 
 
@@ -464,10 +374,10 @@ void game_start(char roundsChar, char player)
 {
     uint8_t rounds = roundsChar - '0';
     // PORTC &= ~(1 << 2); // led off
+    scrolling_text("Ready?\0");
+    wait(player);
     for (uint8_t i = 0; i < rounds; i++) {
         // play a game of paper sissors rock and display winner
-        scrolling_text("Ready?\0");
-        wait(player);
         icon_countdown();
         game_result();
         

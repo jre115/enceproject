@@ -3,10 +3,10 @@
 #include "nav.h"
 #define TRUE 1
 #define FALSE 0
-#define NO_DIRECTION 0
+
 
 /* Returns value of direction if the navswitch has been moved, otherwise returns 0*/
-int8_t direction_moved(void)
+char direction_moved(void)
 {
     if (navswitch_push_event_p(NAVSWITCH_NORTH)) {
         return NORTH;

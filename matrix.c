@@ -130,3 +130,27 @@ void display_west_arrow(void)
     uint8_t bitmap[] = {0x08, 0x1C, 0x2A, 0x08, 0x08};
     display_shape(bitmap);
 }
+
+void display_smiley_face(void)
+{
+    uint8_t bitmap[] = {0x10, 0x26, 0x20, 0x26, 0x10};
+    display_shape(bitmap);
+}
+
+void display_sad_face(void)
+{
+    uint8_t bitmap[] = {0x20, 0x16, 0x10, 0x16, 0x20};
+    display_shape(bitmap);
+}
+
+void display_sand_timer(void)
+{
+    uint8_t bitmap[] = {0x41, 0x63, 0x5F, 0x63, 0x41};
+    display_shape(bitmap);
+}
+
+void display_draw_face(void)
+{
+    uint8_t bitmap[] = {0x10, 0x16, 0x10, 0x16, 0x10};
+    display_shape(bitmap);
+}

@@ -32,4 +32,12 @@ void display_west_arrow(void);
 
 void display_none(void);
 
+void display_smiley_face(void);
+
+void display_sad_face(void);
+
+void display_sand_timer(void);
+
+void display_draw_face(void);
+
 #endif //MATRIX_H
