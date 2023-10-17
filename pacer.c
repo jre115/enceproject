@@ -1,8 +1,8 @@
 /*
-# File:   displays.c
+# File:   pacer.c
 # Author: J. Redfern, R. Campbell-Stokes
 # Date:   18 October 2023
-# Descr:  Contains logic for the pacer function
+# Descr:  Contains logic for the pacer function, It's included in gitlab because it is custom.
 */
 
 #include <avr/io.h>
