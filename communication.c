@@ -63,8 +63,8 @@ char communication_send_and_recieve(char player, char message)
 }
 
 /*Waits for the other player to signal readiness before starting the game*/
-void communication_wait_for_other_player(char player) {
-
+void communication_wait_for_other_player(char player)
+{
     uint16_t tick = 0;
     char character;
     navswitch_init();
@@ -83,7 +83,6 @@ void communication_wait_for_other_player(char player) {
             }
 
             // If a signal is received from PLAY/*Waits for the other player to signal readiness before starting the game*/
-ER2, set the flag to exit the loop
             if (ir_uart_read_ready_p()) {
                 character = ir_uart_getc();
                 if (character == PLAYER2) {
