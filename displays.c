@@ -28,7 +28,7 @@ void show_display(void(*displayfunc)(void), char direction)
 }
 
 
-void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDir, char* other)
+void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDir, char* other, const char player)
 {
     uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
     char direction;
