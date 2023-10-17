@@ -68,7 +68,7 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
     while (1) {
         pacer_wait();
 
-        disp_character(states[state]);
+        matrix_display_character(states[state]);
         matrix_disp_text();
 
         if (mode == DUAL && ir_uart_read_ready_p()) {

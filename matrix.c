@@ -49,7 +49,7 @@ void matrix_disp_text(void)
     tinygl_update();
 }
 
-void disp_character (char character)
+void matrix_display_character (char character)
 {
     char buffer[2];
 
@@ -63,77 +63,77 @@ void disp_character (char character)
 
 /* Different bit map displays */
 
-void display_rock(void)
+void matrix_display_rock(void)
 {
     uint8_t rockmap[] = {0x00, 0x08, 0x1C, 0x08, 0x00};
     matrix_display_shape(rockmap);
 }
 
 
-void display_scissors(void)
+void matrix_display_scissors(void)
 {
     uint8_t scissormap[] = {0x27, 0x16, 0x0C, 0x16, 0x27};
     matrix_display_shape(scissormap);
 }
 
 
-void display_paper(void)
+void matrix_display_paper(void)
 {
     uint8_t papermap[] = {0x7F, 0x41, 0x41, 0x41, 0x7F};
     matrix_display_shape(papermap);
 }
 
 
-void display_north_arrow(void)
+void matrix_display_north_arrow(void)
 {
     uint8_t bitmap[] = {0x04, 0x02, 0x7F, 0x02, 0x04};
     matrix_display_shape(bitmap);
 }
 
 
-void display_none(void)
+void matrix_display_none(void)
 {
     uint8_t bitmap[] = {0x0, 0x0, 0x0, 0x0, 0x0};
     matrix_display_shape(bitmap);
 }
 
 
-void display_east_arrow(void)
+void matrix_display_east_arrow(void)
 {
     uint8_t bitmap[] = {0x08, 0x08, 0x2A, 0x1C, 0x08};
     matrix_display_shape(bitmap);
 }
 
 
-void display_west_arrow(void)
+void matrix_display_west_arrow(void)
 {
     uint8_t bitmap[] = {0x08, 0x1C, 0x2A, 0x08, 0x08};
     matrix_display_shape(bitmap);
 }
 
 
-void display_smiley_face(void)
+void matrix_display_smiley_face(void)
 {
     uint8_t bitmap[] = {0x10, 0x26, 0x20, 0x26, 0x10};
     matrix_display_shape(bitmap);
 }
 
 
-void display_sad_face(void)
+void matrix_display_sad_face(void)
 {
     uint8_t bitmap[] = {0x20, 0x16, 0x10, 0x16, 0x20};
     matrix_display_shape(bitmap);
 }
 
 
-void display_sand_timer(void)
+void matrix_display_sand_timer(void)
 {
     uint8_t bitmap[] = {0x41, 0x63, 0x5F, 0x63, 0x41};
     matrix_display_shape(bitmap);
 }
 
 
-void display_draw_face(void)
+void matrix_display_draw_face(void)
 {
     uint8_t bitmap[] = {0x10, 0x16, 0x10, 0x16, 0x10};
     matrix_display_shape(bitmap);

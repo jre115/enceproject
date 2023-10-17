@@ -67,7 +67,7 @@ void wait(char player) {
     if (player == PLAYER1) {
         while(recev == 0) {
             tick++;
-            display_sand_timer();
+            matrix_display_sand_timer();
             pacer_wait();
 
             if (tick > PACER_RATE) {
@@ -85,7 +85,7 @@ void wait(char player) {
         
     } else if (player == PLAYER2) {
         while (recev == 0) {
-            display_sand_timer();
+            matrix_display_sand_timer();
             pacer_wait();
             if (ir_uart_read_ready_p()) {
                 character = ir_uart_getc();
