@@ -16,13 +16,13 @@ all: game.out
 
 
 # Compile: create object files from C source files.
-game.o: game.c ../../drivers/avr/system.h ../../drivers/avr/pio.h ../../utils/pacer.h ../../drivers/led.h ../../drivers/navswitch.h  matrix.h nav.h ../../drivers/avr/ir_uart.h ../../utils/tinygl.h communication.h displays.h
+game.o: game.c ../../drivers/avr/system.h ../../drivers/avr/pio.h pacer.h ../../drivers/led.h ../../drivers/navswitch.h  matrix.h nav.h ../../drivers/avr/ir_uart.h ../../utils/tinygl.h communication.h displays.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 system.o: ../../drivers/avr/system.c ../../drivers/avr/system.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-pacer.o: ../../utils/pacer.c ../../drivers/avr/system.h ../../drivers/avr/timer.h ../../utils/pacer.h
+pacer.o: pacer.c ../../drivers/avr/system.h ../../drivers/avr/timer.h pacer.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 navswitch.o: ../../drivers/navswitch.c ../../drivers/avr/delay.h ../../drivers/avr/pio.h ../../drivers/avr/system.h ../../drivers/navswitch.h
@@ -67,10 +67,10 @@ timer.o: ../../drivers/avr/timer.c ../../drivers/avr/system.h ../../drivers/avr/
 led.o: ../../drivers/led.c ../../drivers/avr/pio.h ../../drivers/avr/system.h ../../drivers/led.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-communication.o: communication.c ../../drivers/avr/system.h ../../drivers/navswitch.h ../../utils/pacer.h ../../drivers/avr/ir_uart.h matrix.h nav.h communication.h
+communication.o: communication.c ../../drivers/avr/system.h ../../drivers/navswitch.h pacer.h ../../drivers/avr/ir_uart.h matrix.h nav.h communication.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-displays.o: displays.c ../../drivers/avr/system.h ../../drivers/navswitch.h nav.h ../../utils/pacer.h matrix.h ../../drivers/avr/ir_uart.h ../../drivers/led.h displays.h
+displays.o: displays.c ../../drivers/avr/system.h ../../drivers/navswitch.h nav.h pacer.h matrix.h ../../drivers/avr/ir_uart.h ../../drivers/led.h displays.h
 	$(CC) -c $(CFLAGS) $< -o $@
 	
 # Link: create ELF output file from object files.

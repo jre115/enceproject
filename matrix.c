@@ -17,6 +17,7 @@
 void matrix_init(void)
 {
     ledmat_init();
+    display_init();
     tinygl_clear();
 }
 
@@ -43,7 +44,7 @@ void matrix_display_shape(uint8_t* bitmap)
     ledmat_display_column (bitmap[current_column], current_column);
 
     current_column++;
-sand timer
+
     if (current_column > (LEDMAT_COLS_NUM - 1)) {
         current_column = 0;
     }           
@@ -106,7 +107,7 @@ void matrix_display_north_arrow(void)
 
 /* Displays the bitmap array for the east arrow icon*/
 void matrix_display_east_arrow(void)
-{sand timer
+{
     uint8_t bitmap[] = {0x08, 0x08, 0x2A, 0x1C, 0x08};
     matrix_display_shape(bitmap);
 }

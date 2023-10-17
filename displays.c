@@ -21,13 +21,13 @@
 
 
 /**
- * Continuously displays a bitmap using 'displayfunc', exits when user navigates or goal direction reached.
+ * Continuously displays a bitmap using 'display_function', exits when user navigates or goal direction reached.
  */
-void displays_show_bitmap(void(*displayfunc)(void), char direction)
+void displays_show_bitmap(void(*display_function)(void), char direction)
 {
     while(1) {
         pacer_wait();
-        displayfunc();
+        display_function();
         navswitch_update();
         if (((nav_direction_moved() != NO_DIRECTION) && direction == ANY) || (nav_is_goal(direction))){
             // refresh screen and exit
@@ -41,7 +41,7 @@ void displays_show_bitmap(void(*displayfunc)(void), char direction)
 /**
  * Displays a custom marix display for a specific amount of time.
  */
-void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* previous_direction, char* other_players_direction)
+void displays_timed_display(void(*display_function)(void), uint16_t milliseconds, char* previous_direction, char* other_players_direction)
 {
     uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
     char direction;
@@ -52,9 +52,9 @@ void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, cha
         navswitch_update();
 
         if (TCNT1 % 2 == 0) {
-            displayfunc();
+            display_function();
         }
-        
+
         if (ir_uart_read_ready_p()) {
             *other_players_direction = ir_uart_getc();
         }

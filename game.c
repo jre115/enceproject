@@ -56,9 +56,9 @@ int8_t game_result(int8_t* player_score_ptr, char* previous_direction, char* oth
 /* initialises all required */
 void init_all(void)
 {
-    system_init ();
+    system_init();
     matrix_init();
-    navswitch_init ();
+    navswitch_init();
     ir_uart_init();
     pacer_init(PACER_RATE);
 }

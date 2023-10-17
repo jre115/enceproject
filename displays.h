@@ -13,21 +13,21 @@
 #define PRESCALAR 1024
 #define CPU_F 8000000
 
-#define PSR_COUNTDOWN_TIME 2000
-#define YOUR_CHOICE_TIME 4000
-#define RESULT_DISPLAY_TIME 6000
+#define PSR_COUNTDOWN_TIME 750
+#define YOUR_CHOICE_TIME 1500
+#define RESULT_DISPLAY_TIME 3000
 
 
 /**
- * Continuously displays a bitmap using 'displayfunc', exits when user navigates or goal direction reached.
+ * Continuously displays a bitmap using 'display_function', exits when user navigates or goal direction reached.
  */
-void displays_show_bitmap(void(*displayfunc)(void), char direction);
+void displays_show_bitmap(void(*display_function)(void), char direction);
 
 
 /**
  * Displays a custom marix display for a specific amount of time.
  */
-void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* previous_direction, char* other_players_direction);
+void displays_timed_display(void(*display_function)(void), uint16_t milliseconds, char* previous_direction, char* other_players_direction);
 
 
 /**
