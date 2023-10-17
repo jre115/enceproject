@@ -31,6 +31,10 @@
 #define PAPER EAST
 #define SCISSORS WEST
 
+#define LOSS -1
+#define DRAW 0
+#define WIN 1
+
 /* used to represent the different type of display modes. Dual if the toggles
 and push to select work across both fun kits. Otherwise individual.*/
 typedef enum {
@@ -45,7 +49,7 @@ void game_determine_and_display_overall_result(char player, int8_t player_score)
 char game_set_num_rounds(void);
 int8_t game_start(char rounds_char, char player);
 char game_welcome(void);
-int8_t game_result(int8_t* player_score_ptr, char* other, char* prevDir);
+int8_t game_result(int8_t* player_score_ptr, char* previous_direction, char* other_players_direction);
 
 /* initialises all required */
 void init_all(void)
@@ -144,7 +148,10 @@ void game_determine_and_display_overall_result(char player, int8_t player_score)
     displays_overall_result(playerScoreAsChar, otherScore);
 }    
 
-
+/*
+ * Plays a round-based game of Paper, Scissors, Rock (PSR) for the specified number of rounds,
+ * updating the player's score based on the outcomes of each round.
+ */
 int8_t game_start(char rounds_char, char player)
 {
     uint8_t rounds = rounds_char - '0';
@@ -158,8 +165,8 @@ int8_t game_start(char rounds_char, char player)
     while (round < rounds) {
         // reset light and selected moves at the start of each round
         led_set(LED1, 0); 
-        other_players_direction = NO_DIRECTION;
-        previous_direction = NO_DIRECTION;
+        char other_players_direction = NO_DIRECTION;
+        char previous_direction = NO_DIRECTION;
 
         // play a game of paper sissors rock then displays their own selected move
         displays_icon_countdown(&previous_direction, &other_players_direction);
@@ -171,6 +178,7 @@ int8_t game_start(char rounds_char, char player)
 
         round++;
     }
+
     return player_score;
 }
 
@@ -178,63 +186,72 @@ int8_t game_start(char rounds_char, char player)
 /* Displays welcome message and tutorial */
 char game_welcome(void)
 {
+    // Switches on LED to indicate on
     led_set(LED1, 1);
+
     char player = communication_player_setup();
+
+    // Only leave the light on to indicate player 1
     if (player == PLAYER2) {
-        led_set(LED1, 0); // Blue LED off
+        led_set(LED1, 0); 
     }
 
     displays_scrolling_text("Welcome to PSR! Move to start\0");
+
+    // select Y or N for tutorial
     displays_scrolling_text("View tutorial?\0");
-
     char options[NUMBER_OF_CHOICES_FOR_START] = {'Y', 'N'};
-
     char character = game_select_and_display_options(options, NUMBER_OF_CHOICES_FOR_START, INDIVIDUAL);
-
     if (character == 'Y') {
         displays_tutorial();
     }
 
+    // waits to ensure players are in sync
     communication_wait_for_other_player(player);
 
     return player;
 }
 
 
-int8_t game_result(int8_t* player_score_ptr) 
+/* Determines the result of a round based on the player's and the opponent's chosen moves.
+    Updates the player's score accordingly. */
+int8_t game_result(int8_t* player_score_ptr, char* previous_direction, char* other_players_direction) 
 {
-    int8_t result = 0;
-    if (other_players_direction == previous_direction) {
-        result = 0;
-    } else if (other_players_direction == NO_DIRECTION) {
-        result = 1;
+    int8_t result = DRAW;
+    if ((*other_players_direction) == (*previous_direction)) {
+        result = DRAW;
+    } else if ((*other_players_direction) == NO_DIRECTION) {
+        result = WIN;
         (*player_score_ptr)++;
-    } else if (previous_direction == NO_DIRECTION) {
-        result = -1;
-    } else if (previous_direction == ROCK && other_players_direction == SCISSORS) {
-        result = 1;
+    } else if ((*previous_direction) == NO_DIRECTION) {
+        result = LOSS;
+    } else if ((*previous_direction) == ROCK && (*other_players_direction) == SCISSORS) {
+        result = WIN;
         (*player_score_ptr)++;
-    } else if (previous_direction == PAPER && other_players_direction == ROCK) {
-        result = 1;
+    } else if ((*previous_direction) == PAPER && (*other_players_direction) == ROCK) {
+        result = WIN;
         (*player_score_ptr)++;
-    } else if (previous_direction == SCISSORS && other_players_direction == PAPER) {
-        result = 1;
+    } else if ((*previous_direction) == SCISSORS && (*other_players_direction) == PAPER) {
+        result = WIN;
         (*player_score_ptr)++;
     } else {
-        result = -1;
+        // otherwise player loses
+        result = LOSS; 
     }
 
     return result;
 }
 
-
+/* Main function to initialise the game, handle game flow,
+and allow players to play multiple rounds. */
 int main (void)
 {
     init_all();
+    int8_t playAgain = TRUE;
 
-    int8_t playAgain;
     char player = game_welcome();
     
+    // Continues with round selection and playing the rounds until the user does not want to play again
     do {
         char numRounds = game_set_num_rounds();
         int8_t player_score = game_start(numRounds, player);
@@ -242,15 +259,15 @@ int main (void)
         
         displays_scrolling_text("Play Again?\0");
 
-        char options[] = {'Y', 'N'};
-
+        // wait to be in sync
         communication_wait_for_other_player(player);
+
+        char options[] = {'Y', 'N'};
         char character = game_select_and_display_options(options, 2, DUAL);
 
-        if (character == 'Y') {
-            playAgain = 1;
-        } else {
-            playAgain = 0;
+        // If play again is not selected (N = NO), exit the game, otherwise loop again
+        if (character == 'N') {
+            playAgain = FALSE;
             led_set(LED1, 0);
             matrix_init();
         }
