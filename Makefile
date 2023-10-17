@@ -70,7 +70,7 @@ led.o: ../../drivers/led.c ../../drivers/avr/pio.h ../../drivers/avr/system.h ..
 communication.o: communication.c ../../drivers/avr/system.h ../../drivers/navswitch.h ../../utils/pacer.h ../../drivers/avr/ir_uart.h matrix.h nav.h communication.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-displays.o: displays.c ../../drivers/avr/system.h ../../drivers/navswitch.h nav.h ../../utils/pacer.h matrix.h ../../drivers/avr/ir_uart.h ../../drivers/avr/timer.h ../../drivers/led.h displays.h
+displays.o: displays.c ../../drivers/avr/system.h ../../drivers/navswitch.h nav.h ../../utils/pacer.h matrix.h ../../drivers/avr/ir_uart.h ../../drivers/led.h displays.h
 	$(CC) -c $(CFLAGS) $< -o $@
 	
 # Link: create ELF output file from object files.

@@ -1,3 +1,10 @@
+/*
+# File:   displays.c
+# Author: J. Redfern, R. Campbell-Stokes
+# Date:   18 October 2023
+# Descr:  contains display functions for the LED matrix
+*/
+
 #include <avr/io.h>
 #include "system.h"
 #include "navswitch.h"
@@ -5,7 +12,6 @@
 #include "pacer.h"
 #include "matrix.h"
 #include "ir_uart.h"
-#include "timer.h"
 #include "led.h"
 #include "displays.h"
 
@@ -14,6 +20,9 @@
 #define SCISSORS WEST
 
 
+/**
+ * Continuously displays a bitmap using 'displayfunc', exits when user navigates or goal direction reached.
+ */
 void displays_show_bitmap(void(*displayfunc)(void), char direction)
 {
     while(1) {
@@ -21,6 +30,7 @@ void displays_show_bitmap(void(*displayfunc)(void), char direction)
         displayfunc();
         navswitch_update();
         if (((nav_direction_moved() != NO_DIRECTION) && direction == ANY) || (nav_is_goal(direction))){
+            // refresh screen and exit
             matrix_init();
             break;
         }
@@ -28,6 +38,9 @@ void displays_show_bitmap(void(*displayfunc)(void), char direction)
 }
 
 
+/**
+ * Displays a custom marix display for a specific amount of time.
+ */
 void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* previous_direction, char* other_players_direction)
 {
     uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
@@ -45,6 +58,7 @@ void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, cha
         if (ir_uart_read_ready_p()) {
             *other_players_direction = ir_uart_getc();
         }
+
         direction = nav_direction_moved();
         if (direction == NORTH || direction == EAST || direction == WEST) {
             *previous_direction = direction;
@@ -56,6 +70,9 @@ void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, cha
 }
 
 
+/**
+ * Scrolls the specified 'text' on the display screen and continuously displays it.
+ */
 void displays_scrolling_text(char* text)
 {
     matrix_init_text(text);
@@ -64,6 +81,10 @@ void displays_scrolling_text(char* text)
 }
 
 
+/**
+ * Displays a tutorial sequence on the screen, including scrolling text and corresponding
+ * bitmaps for 'Rock', 'Paper', and 'Scissors', along with directional arrows.
+ */
 void displays_tutorial(void)
 {
     displays_scrolling_text("Rock\0");
@@ -80,6 +101,10 @@ void displays_tutorial(void)
 }
 
 
+/**
+ * Displays a countdown sequence with icons for 'Paper', 'Scissors', 'Rock', and 'None'.
+ * It updates 'previous_direction' and 'other_players_direction' during the countdown.
+ */
 void displays_icon_countdown(char* previous_direction, char* other_players_direction) 
 {
     displays_timed_display(&matrix_display_paper, PSR_COUNTDOWN_TIME, previous_direction, other_players_direction);
@@ -89,6 +114,10 @@ void displays_icon_countdown(char* previous_direction, char* other_players_direc
 }
 
 
+/**
+ * Displays your own choice icon based on 'previous_direction' and updates it during
+ * the specified time. Also communicates with other players using 'other_players_direction'.
+ */
 void displays_own(char* previous_direction, char* other_players_direction)
 {
     pacer_wait();
@@ -104,6 +133,11 @@ void displays_own(char* previous_direction, char* other_players_direction)
 }
 
 
+/**
+ * Displays a game result icon based on the 'result' parameter, updating it during
+ * the specified time. Uses 'previous_direction' and 'other_players_direction' for
+ * communication.
+ */
 void displays_game_result(int8_t result, char* previous_direction, char* other_players_direction) 
 {
     if (result == -1) {
@@ -115,6 +149,11 @@ void displays_game_result(int8_t result, char* previous_direction, char* other_p
     }
 }
 
+
+/**
+ * Displays the overall game result, with the player's score and the opponent's score.
+ * Scrolls a message indicating the winner, loser, or a draw based on the scores.
+ */
 void displays_overall_result(char playerScoreAsChar, char otherScore)
 {
     if (playerScoreAsChar > otherScore) {
