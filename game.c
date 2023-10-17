@@ -24,9 +24,9 @@
 #define NUMBER_OF_CHOICES_FOR_ROUNDS 5
 #define SEND_RATE_DISPLAY 20
 
-// these should be in the other header files!!
 #define PLAYER1 'A'
 #define PLAYER2 'E'
+
 #define ROCK NORTH
 #define PAPER EAST
 #define SCISSORS WEST
@@ -40,12 +40,12 @@ typedef enum {
 
 
 /* Define functions so not to have to worry about order */
-char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode);
-void determine_and_displays_overall_result(char player, int8_t playerScore);
-char set_num_rounds(void);
-int8_t game_start(char roundsChar, char player);
+char game_select_and_display_options(char* states, uint8_t n, displayMode_t mode);
+void game_determine_and_display_overall_result(char player, int8_t player_score);
+char game_set_num_rounds(void);
+int8_t game_start(char rounds_char, char player);
 char game_welcome(void);
-int8_t game_result(int8_t* playerScorePtr, char* other, char* prevDir);
+int8_t game_result(int8_t* player_score_ptr, char* other, char* prevDir);
 
 /* initialises all required */
 void init_all(void)
@@ -60,8 +60,8 @@ void init_all(void)
 
 /* Select and display options on the matrix display. 
 Users navigate through set of options using navswitch and can select an option. 
-In DUAL mode it communicates with the other microcontroller */
-char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
+In DUAL mode it communicates with the other_players_direction microcontroller */
+char game_select_and_display_options(char* states, uint8_t n, displayMode_t mode)
 {
     char character;
     uint8_t state = 0;
@@ -89,19 +89,19 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
             navswitch_update();
             tick = 0;
 
-            // Checks if the navswitch has been moved east or west and sends this to other microcontroller if in DUAL mode
-            if (is_goal_nav(EAST)) {
+            // Checks if the navswitch has been moved east or west and sends this to other_players_direction microcontroller if in DUAL mode
+            if (nav_is_goal(EAST)) {
                 state = (state + 1) % n;
                 if (mode == DUAL) {
                     ir_uart_putc(state + '0');
                 }
-            } else if (is_goal_nav(WEST)) {
+            } else if (nav_is_goal(WEST)) {
                 state = (state - 1 + n) % n;
                 if (mode == DUAL) {
                     ir_uart_putc(state + '0');
                 }
             // Sends message if navswitch has been pushed if in DUAL mode and returns current displayed
-            } else if (is_goal_nav(PUSH)) {
+            } else if (nav_is_goal(PUSH)) {
                 matrix_init();
 
                 if (mode == DUAL) {
@@ -118,11 +118,11 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 
 /* Prompts the users to select the number of rounds they want to play and returns the number of rounds.
 Either users can toggle and select the number of rounds*/
-char set_num_rounds(void)
+char game_set_num_rounds(void)
 {
     displays_scrolling_text("How many rounds?\0");
     char roundOptions[NUMBER_OF_CHOICES_FOR_ROUNDS] = {'1', '3', '5', '7', '9'};
-    char character = selectAndDisplayOptions(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS, DUAL);
+    char character = game_select_and_display_options(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS, DUAL);
     
     // displays chosen number of rounds
     matrix_init();
@@ -135,53 +135,53 @@ char set_num_rounds(void)
 
 
 /* Prompts the users to communicate their results and displays the compared results*/
-void determine_and_displays_overall_result(char player, int8_t playerScore)
+void game_determine_and_display_overall_result(char player, int8_t player_score)
 {   
     // converts the player score to a char for comparison
-    char playerScoreAsChar = playerScore + '0';
+    char playerScoreAsChar = player_score + '0';
     char otherScore = communication_send_and_recieve(player, playerScoreAsChar);
 
     displays_overall_result(playerScoreAsChar, otherScore);
 }    
 
 
-/* Plays the game by round for the inputted number of rounds*/
-int8_t game_start(char roundsChar, char player)
-{   
-    // converts the roundsChar to the number as an int
-    uint8_t rounds = roundsChar - '0';
+int8_t game_start(char rounds_char, char player)
+{
+    uint8_t rounds = rounds_char - '0';
     displays_scrolling_text("Ready?\0");
     communication_wait_for_other_player(player);
 
     uint8_t round = 0;
-    int8_t playerScore = 0;
 
+
+    int8_t player_score = 0;
     while (round < rounds) {
         // reset light and selected moves at the start of each round
-        led_set(LED1, 0);
-        char other = NO_DIRECTION;
-        char prevDir = NO_DIRECTION;
+        led_set(LED1, 0); 
+        other_players_direction = NO_DIRECTION;
+        previous_direction = NO_DIRECTION;
 
-        // play a game of paper sissors rock, display their own result then display the winner
-        displays_icon_countdown(&prevDir, &other);
-        displays_own(&prevDir, &other);
-        int8_t result = game_result(&playerScore, &prevDir, &other);
-        displays_game_result(result, &prevDir, &other);
-        
+        // play a game of paper sissors rock then displays their own selected move
+        displays_icon_countdown(&previous_direction, &other_players_direction);
+        displays_own(&previous_direction, &other_players_direction);
+
+        // displays the result of the game
+        int8_t result = game_result(&player_score, &previous_direction, &other_players_direction);
+        displays_game_result(result, &previous_direction, &other_players_direction);
+
         round++;
     }
-    return playerScore;
+    return player_score;
 }
 
 
-/*Displays welcome message and tutorial*/
+/* Displays welcome message and tutorial */
 char game_welcome(void)
 {
     led_set(LED1, 1);
     char player = communication_player_setup();
-    // TODO: when should we remove??
     if (player == PLAYER2) {
-        led_set(LED1, 0); // Blue LED on
+        led_set(LED1, 0); // Blue LED off
     }
 
     displays_scrolling_text("Welcome to PSR! Move to start\0");
@@ -189,7 +189,7 @@ char game_welcome(void)
 
     char options[NUMBER_OF_CHOICES_FOR_START] = {'Y', 'N'};
 
-    char character = selectAndDisplayOptions(options, NUMBER_OF_CHOICES_FOR_START, INDIVIDUAL);
+    char character = game_select_and_display_options(options, NUMBER_OF_CHOICES_FOR_START, INDIVIDUAL);
 
     if (character == 'Y') {
         displays_tutorial();
@@ -201,25 +201,25 @@ char game_welcome(void)
 }
 
 
-int8_t game_result(int8_t* playerScorePtr, char* other, char* prevDir) 
+int8_t game_result(int8_t* player_score_ptr) 
 {
     int8_t result = 0;
-    if ((*other) == (*prevDir)) {
+    if (other_players_direction == previous_direction) {
         result = 0;
-    } else if ((*other) == NO_DIRECTION) {
+    } else if (other_players_direction == NO_DIRECTION) {
         result = 1;
-        (*playerScorePtr)++;
-    } else if ((*prevDir) == NO_DIRECTION) {
+        (*player_score_ptr)++;
+    } else if (previous_direction == NO_DIRECTION) {
         result = -1;
-    } else if ((*prevDir) == ROCK && (*other) == SCISSORS) {
+    } else if (previous_direction == ROCK && other_players_direction == SCISSORS) {
         result = 1;
-        (*playerScorePtr)++;
-    } else if ((*prevDir) == PAPER && (*other) == ROCK) {
+        (*player_score_ptr)++;
+    } else if (previous_direction == PAPER && other_players_direction == ROCK) {
         result = 1;
-        (*playerScorePtr)++;
-    } else if ((*prevDir) == SCISSORS && (*other) == PAPER) {
+        (*player_score_ptr)++;
+    } else if (previous_direction == SCISSORS && other_players_direction == PAPER) {
         result = 1;
-        (*playerScorePtr)++;
+        (*player_score_ptr)++;
     } else {
         result = -1;
     }
@@ -233,19 +233,19 @@ int main (void)
     init_all();
 
     int8_t playAgain;
-    char player = game_welcome(); // whoop whoop this is all good :)
+    char player = game_welcome();
     
     do {
-        char numRounds = set_num_rounds();
-        int8_t playerScore = game_start(numRounds, player);
-        determine_and_displays_overall_result(player, playerScore);
+        char numRounds = game_set_num_rounds();
+        int8_t player_score = game_start(numRounds, player);
+        game_determine_and_display_overall_result(player, player_score);
         
         displays_scrolling_text("Play Again?\0");
 
         char options[] = {'Y', 'N'};
 
         communication_wait_for_other_player(player);
-        char character = selectAndDisplayOptions(options, 2, DUAL);
+        char character = game_select_and_display_options(options, 2, DUAL);
 
         if (character == 'Y') {
             playAgain = 1;
@@ -254,7 +254,6 @@ int main (void)
             led_set(LED1, 0);
             matrix_init();
         }
-
 
     } while (playAgain);
 

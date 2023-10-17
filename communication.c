@@ -17,7 +17,7 @@ char communication_player_setup(void)
     while (!decided) {
         navswitch_update();
         
-        if (direction_moved() != NO_DIRECTION) {
+        if (nav_direction_moved() != NO_DIRECTION) {
             decided = 1;
             ir_uart_putc(sendChar);
             current = PLAYER1;

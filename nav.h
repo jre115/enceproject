@@ -18,9 +18,9 @@
 #define FALSE 0
 
 /* Returns value of direction if the navswitch has been moved, otherwise returns 0*/
-char direction_moved(void); 
+char nav_direction_moved(void); 
 /* returns 1 if the direction pushed matches the desired direction*/
 
-int8_t is_goal_nav(int8_t);
+int8_t nav_is_goal(int8_t);
 
 #endif //NAV_H

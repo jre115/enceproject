@@ -12,17 +12,17 @@
 
 void displays_show_bitmap(void(*displayfunc)(void), char direction);
 
-void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDir, char* other);
+void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* previous_direction, char* other_players_direction);
 
 void displays_scrolling_text(char* text);
 
 void displays_tutorial(void);
 
-void displays_icon_countdown(char* prevDir, char* other);
+void displays_icon_countdown(char* previous_direction, char* other_players_direction);
 
-void displays_own(char* prevDir, char* other);
+void displays_own(char* previous_direction, char* other_players_direction);
 
-void displays_game_result(int8_t result, char* prevDir, char* other);
+void displays_game_result(int8_t result, char* previous_direction, char* other_players_direction);
 
 void displays_overall_result(char playerScoreAsChar, char otherScore);
 

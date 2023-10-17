@@ -4,7 +4,7 @@
 
 
 /* Returns value of direction if the navswitch has been moved, otherwise returns 0*/
-char direction_moved(void)
+char nav_direction_moved(void)
 {
     if (navswitch_push_event_p(NAVSWITCH_NORTH)) {
         return NORTH;
@@ -23,9 +23,9 @@ char direction_moved(void)
 
 /* returns 1 if the direction pushed matches the desired direction*/
 
-int8_t is_goal_nav(int8_t goal)
+int8_t nav_is_goal(int8_t goal)
 {
-    int8_t direction = direction_moved();
+    int8_t direction = nav_direction_moved();
     if (direction == goal) {
         return TRUE;
     } else {

@@ -20,7 +20,7 @@ void displays_show_bitmap(void(*displayfunc)(void), char direction)
         pacer_wait();
         displayfunc();
         navswitch_update();
-        if (((direction_moved() != NO_DIRECTION) && direction == ANY) || (is_goal_nav(direction))){
+        if (((nav_direction_moved() != NO_DIRECTION) && direction == ANY) || (nav_is_goal(direction))){
             matrix_init();
             break;
         }
@@ -28,7 +28,7 @@ void displays_show_bitmap(void(*displayfunc)(void), char direction)
 }
 
 
-void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDir, char* other)
+void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* previous_direction, char* other_players_direction)
 {
     uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
     char direction;
@@ -43,12 +43,12 @@ void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, cha
         }
         
         if (ir_uart_read_ready_p()) {
-            *other = ir_uart_getc();
+            *other_players_direction = ir_uart_getc();
         }
-        direction = direction_moved();
+        direction = nav_direction_moved();
         if (direction == NORTH || direction == EAST || direction == WEST) {
-            *prevDir = direction;
-            ir_uart_putc(*prevDir);
+            *previous_direction = direction;
+            ir_uart_putc(*previous_direction);
             led_set(LED1, 1); // Blue LED on when choice made
         }
     }
@@ -80,38 +80,38 @@ void displays_tutorial(void)
 }
 
 
-void displays_icon_countdown(char* prevDir, char* other) 
+void displays_icon_countdown(char* previous_direction, char* other_players_direction) 
 {
-    displays_timed_display(&matrix_display_paper, PSR_COUNTDOWN_TIME, prevDir, other);
-    displays_timed_display(&matrix_display_scissors, PSR_COUNTDOWN_TIME, prevDir, other);
-    displays_timed_display(&matrix_display_rock, PSR_COUNTDOWN_TIME, prevDir, other);
-    displays_timed_display(&matrix_display_none, PSR_COUNTDOWN_TIME / 2, prevDir, other);
+    displays_timed_display(&matrix_display_paper, PSR_COUNTDOWN_TIME, previous_direction, other_players_direction);
+    displays_timed_display(&matrix_display_scissors, PSR_COUNTDOWN_TIME, previous_direction, other_players_direction);
+    displays_timed_display(&matrix_display_rock, PSR_COUNTDOWN_TIME, previous_direction, other_players_direction);
+    displays_timed_display(&matrix_display_none, PSR_COUNTDOWN_TIME / 2, previous_direction, other_players_direction);
 }
 
 
-void displays_own(char* prevDir, char* other)
+void displays_own(char* previous_direction, char* other_players_direction)
 {
     pacer_wait();
-    if (*prevDir == ROCK) {
-        displays_timed_display(&matrix_display_rock, YOUR_CHOICE_TIME, prevDir, other);
-    } else if (*prevDir == PAPER) {
-        displays_timed_display(&matrix_display_paper, YOUR_CHOICE_TIME, prevDir, other);
-    } else if (*prevDir == SCISSORS) {
-        displays_timed_display(&matrix_display_scissors, YOUR_CHOICE_TIME, prevDir, other);
+    if (*previous_direction == ROCK) {
+        displays_timed_display(&matrix_display_rock, YOUR_CHOICE_TIME, previous_direction, other_players_direction);
+    } else if (*previous_direction == PAPER) {
+        displays_timed_display(&matrix_display_paper, YOUR_CHOICE_TIME, previous_direction, other_players_direction);
+    } else if (*previous_direction == SCISSORS) {
+        displays_timed_display(&matrix_display_scissors, YOUR_CHOICE_TIME, previous_direction, other_players_direction);
     } else {
-        displays_timed_display(&matrix_display_none, YOUR_CHOICE_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_none, YOUR_CHOICE_TIME, previous_direction, other_players_direction);
     }
 }
 
 
-void displays_game_result(int8_t result, char* prevDir, char* other) 
+void displays_game_result(int8_t result, char* previous_direction, char* other_players_direction) 
 {
     if (result == -1) {
-        displays_timed_display(&matrix_display_sad_face, RESULT_DISPLAY_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_sad_face, RESULT_DISPLAY_TIME, previous_direction, other_players_direction);
     } else if (result == 0) {
-        displays_timed_display(&matrix_display_draw_face, RESULT_DISPLAY_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_draw_face, RESULT_DISPLAY_TIME, previous_direction, other_players_direction);
     } else if (result == 1) {
-        displays_timed_display(&matrix_display_smiley_face, RESULT_DISPLAY_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_smiley_face, RESULT_DISPLAY_TIME, previous_direction, other_players_direction);
     }
 }
 
