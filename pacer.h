@@ -2,7 +2,7 @@
 # File:   pacer.h
 # Author: J. Redfern, R. Campbell-Stokes
 # Date:   18 October 2023
-# Descr:  Contains logic for the pacer function. Custom function.
+# Descr:  Contains logic for the pacer function. Custom header file.
 */
 
 #ifndef PACER_H
