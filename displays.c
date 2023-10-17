@@ -114,3 +114,20 @@ void display_game_result(int8_t result, char* prevDir, char* other)
         timed_display(&display_smiley_face, RESULT_DISPLAY_TIME, prevDir, other);
     }
 }
+
+void display_overall_result(char playerScoreAsChar, char otherScore)
+{
+    if (playerScoreAsChar > otherScore) {
+        char result[11] = "Winner: 0\0";
+        result[8] = playerScoreAsChar;
+        scrolling_text(result);
+    } else if (playerScoreAsChar < otherScore) {
+        char result[10] = "Loser: 0\0";
+        result[7] = playerScoreAsChar;
+        scrolling_text(result);
+    } else {
+        char result[8] = "Draw: 0\0";
+        result[6] = playerScoreAsChar;
+        scrolling_text(result);
+    }
+}

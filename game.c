@@ -1,3 +1,10 @@
+/*
+# File:   game.c
+# Author: J. Redfern, R. Campbell-Stokes
+# Date:   18 October 2023
+# Descr:  contains game logic for rock-paper-scissors game
+*/
+
 #include <avr/io.h>
 #include <stdlib.h>
 #include "system.h"
@@ -24,6 +31,8 @@
 #define PAPER EAST
 #define SCISSORS WEST
 
+/* used to represent the different type of display modes. Dual if the toggles
+and push to select work across both fun kits. Otherwise individual.*/
 typedef enum {
     INDIVIDUAL,
     DUAL
@@ -33,18 +42,17 @@ typedef enum {
 /* Define the global variables */ // TODO: make these not global maybe
 static char prevDir = NO_DIRECTION;
 static char other = NO_DIRECTION;
-static int8_t playerScore = 0;
 
 
 /* Define functions so not to have to worry about order */
 char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode);
-void disp_overall_result(char player);
+void determine_and_display_overall_result(char player, int8_t playerScore)
 char set_num_rounds(void);
-void game_start(char roundsChar, char player);
+int8_t game_start(char roundsChar, char player);
 char game_welcome(void);
-int8_t game_result(void);
+int8_t game_result(int8_t* playerScorePtr);
 
-
+/* initialises all required */
 void init_all(void)
 {
     system_init ();
@@ -55,7 +63,9 @@ void init_all(void)
 }
 
 
-// should this go in the display modual?
+/* Select and display options on the matrix display. 
+Users navigate through set of options using navswitch and can select an option. 
+In DUAL mode it communicates with the other microcontroller */
 char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 {
     char character;
@@ -67,10 +77,11 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 
     while (1) {
         pacer_wait();
-
         disp_character(states[state]);
         matrix_disp_text();
 
+        // check for incoming characters in dual mode.
+        // If receives message that nav has been pushed: return current displayed
         if (mode == DUAL && ir_uart_read_ready_p()) {
             character = ir_uart_getc();
             if (character != 'P') {
@@ -78,11 +89,11 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
             } else {
                 return states[state];
             }
-            
         } else if (tick > PACER_RATE / SEND_RATE_DISPLAY) {
             navswitch_update();
-
             tick = 0;
+
+            // Checks if the navswitch has been moved east or west and sends this to other microcontroller if in DUAL mode
             if (is_goal_nav(EAST)) {
                 state = (state + 1) % n;
                 if (mode == DUAL) {
@@ -93,6 +104,7 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
                 if (mode == DUAL) {
                     ir_uart_putc(state + '0');
                 }
+            // Sends message if navswitch has been pushed if in DUAL mode and returns current displayed
             } else if (is_goal_nav(PUSH)) {
                 matrix_init();
                 if (mode == DUAL) {
@@ -114,6 +126,7 @@ char set_num_rounds(void)
     char character = selectAndDisplayOptions(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS, DUAL);
     matrix_init();
     
+    // displays chosen number of rounds
     char result[10] = "Chosen 0 \0";
     result[7] = character;
     scrolling_text(result);
@@ -122,33 +135,22 @@ char set_num_rounds(void)
 }
 
 
-void disp_overall_result(char player)
+void determine_and_display_overall_result(char player, int8_t playerScore)
 {
     char playerScoreAsChar = playerScore + '0';
     char otherScore = send_receive(player, playerScoreAsChar);
 
-    if (playerScoreAsChar > otherScore) {
-        char result[11] = "Winner: 0\0";
-        result[8] = playerScoreAsChar;
-        scrolling_text(result);
-    } else if (playerScoreAsChar < otherScore) {
-        char result[10] = "Loser: 0\0";
-        result[7] = playerScoreAsChar;
-        scrolling_text(result);
-    } else {
-        char result[8] = "Draw: 0\0";
-        result[6] = playerScoreAsChar;
-        scrolling_text(result);
-    }
+    display_overall_result(playerScoreAsChar, otherScore);
 }    
 
 
-void game_start(char roundsChar, char player)
+int8_t game_start(char roundsChar, char player)
 {
     uint8_t rounds = roundsChar - '0';
     scrolling_text("Ready?\0");
     wait(player);
     uint8_t round = 0;
+    int8_t playerScore = 0;
     while (round < rounds) {
         led_set(LED1, 0);
         // play a game of paper sissors rock and display winner
@@ -156,10 +158,11 @@ void game_start(char roundsChar, char player)
         prevDir = NO_DIRECTION;
         icon_countdown(&prevDir, &other);
         display_own(&prevDir, &other);
-        int8_t result = game_result();
+        int8_t result = game_result(&playerScore);
         display_game_result(result, &prevDir, &other);
         round++;
     }
+    return playerScore;
 }
 
 
@@ -190,25 +193,25 @@ char game_welcome(void)
 }
 
 
-int8_t game_result(void) 
+int8_t game_result(int8_t* playerScorePtr) 
 {
     int8_t result = 0;
     if (other == prevDir) {
         result = 0;
     } else if (other == NO_DIRECTION) {
         result = 1;
-        playerScore++;
+        (*playerScorePtr)++;
     } else if (prevDir == NO_DIRECTION) {
         result = -1;
     } else if (prevDir == ROCK && other == SCISSORS) {
         result = 1;
-        playerScore++;
+        (*playerScorePtr)++;
     } else if (prevDir == PAPER && other == ROCK) {
         result = 1;
-        playerScore++;
+        (*playerScorePtr)++;
     } else if (prevDir == SCISSORS && other == PAPER) {
         result = 1;
-        playerScore++;
+        (*playerScorePtr)++;
     } else {
         result = -1;
     }
@@ -226,9 +229,8 @@ int main (void)
     
     do {
         char numRounds = set_num_rounds();
-        game_start(numRounds, player);
-        
-        disp_overall_result(player);
+        int8_t playerScore = game_start(numRounds, player);
+        determine_and_display_overall_result(player, playerScore);
         
         scrolling_text("Play Again?\0");
 
