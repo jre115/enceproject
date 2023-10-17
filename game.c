@@ -121,7 +121,7 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 
 char set_num_rounds(void)
 {
-    scrolling_text("How many rounds?\0");
+    displays_scrolling_text("How many rounds?\0");
     char roundOptions[NUMBER_OF_CHOICES_FOR_ROUNDS] = {'1', '3', '5', '7', '9'};
 
     char character = selectAndDisplayOptions(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS, DUAL);
@@ -130,7 +130,7 @@ char set_num_rounds(void)
     // displays chosen number of rounds
     char result[10] = "Chosen 0 \0";
     result[7] = character;
-    scrolling_text(result);
+    displays_scrolling_text(result);
 
     return character;
 }
@@ -141,14 +141,14 @@ void determine_and_display_overall_result(char player, int8_t playerScore)
     char playerScoreAsChar = playerScore + '0';
     char otherScore = communication_send_and_recieve(player, playerScoreAsChar);
 
-    display_overall_result(playerScoreAsChar, otherScore);
+    displays_overall_result(playerScoreAsChar, otherScore);
 }    
 
 
 int8_t game_start(char roundsChar, char player)
 {
     uint8_t rounds = roundsChar - '0';
-    scrolling_text("Ready?\0");
+    displays_scrolling_text("Ready?\0");
     communication_wait_for_other_player(player);
     uint8_t round = 0;
     int8_t playerScore = 0;
@@ -157,10 +157,10 @@ int8_t game_start(char roundsChar, char player)
         // play a game of paper sissors rock and display winner
         other = NO_DIRECTION;
         prevDir = NO_DIRECTION;
-        icon_countdown(&prevDir, &other);
-        display_own(&prevDir, &other);
+        displays_icon_countdown(&prevDir, &other);
+        displays_own(&prevDir, &other);
         int8_t result = game_result(&playerScore);
-        display_game_result(result, &prevDir, &other);
+        displays_game_result(result, &prevDir, &other);
         round++;
     }
     return playerScore;
@@ -177,15 +177,15 @@ char game_welcome(void)
         led_set(LED1, 0); // Blue LED on
     }
 
-    scrolling_text("Welcome to PSR! Move to start\0");
-    scrolling_text("View tutorial?\0");
+    displays_scrolling_text("Welcome to PSR! Move to start\0");
+    displays_scrolling_text("View tutorial?\0");
 
     char options[NUMBER_OF_CHOICES_FOR_START] = {'Y', 'N'};
 
     char character = selectAndDisplayOptions(options, NUMBER_OF_CHOICES_FOR_START, INDIVIDUAL);
 
     if (character == 'Y') {
-        displayTutorial();
+        displays_tutorial();
     }
 
     communication_wait_for_other_player(player);
@@ -233,7 +233,7 @@ int main (void)
         int8_t playerScore = game_start(numRounds, player);
         determine_and_display_overall_result(player, playerScore);
         
-        scrolling_text("Play Again?\0");
+        displays_scrolling_text("Play Again?\0");
 
         char options[] = {'Y', 'N'};
 

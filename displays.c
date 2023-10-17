@@ -14,7 +14,7 @@
 #define SCISSORS WEST
 
 
-void show_display(void(*displayfunc)(void), char direction)
+void displays_show_bitmap(void(*displayfunc)(void), char direction)
 {
     while(1) {
         pacer_wait();
@@ -28,7 +28,7 @@ void show_display(void(*displayfunc)(void), char direction)
 }
 
 
-void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDir, char* other)
+void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDir, char* other)
 {
     uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
     char direction;
@@ -56,78 +56,78 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDi
 }
 
 
-void scrolling_text(char* text)
+void displays_scrolling_text(char* text)
 {
     matrix_init_text(text);
-    show_display(&matrix_disp_text, ANY);
+    displays_show_bitmap(&matrix_disp_text, ANY);
 
 }
 
 
-void displayTutorial(void)
+void displays_tutorial(void)
 {
-    scrolling_text("Rock\0");
-    show_display(&matrix_display_north_arrow, NORTH);
-    show_display(&matrix_display_rock, NORTH);
+    displays_scrolling_text("Rock\0");
+    displays_show_bitmap(&matrix_display_north_arrow, NORTH);
+    displays_show_bitmap(&matrix_display_rock, NORTH);
 
-    scrolling_text("Paper\0");
-    show_display(&matrix_display_east_arrow, EAST);
-    show_display(&matrix_display_paper, EAST);
+    displays_scrolling_text("Paper\0");
+    displays_show_bitmap(&matrix_display_east_arrow, EAST);
+    displays_show_bitmap(&matrix_display_paper, EAST);
 
-    scrolling_text("Scissors\0");
-    show_display(&matrix_display_west_arrow, WEST);
-    show_display(&matrix_display_scissors, WEST);
+    displays_scrolling_text("Scissors\0");
+    displays_show_bitmap(&matrix_display_west_arrow, WEST);
+    displays_show_bitmap(&matrix_display_scissors, WEST);
 }
 
 
-void icon_countdown(char* prevDir, char* other) 
+void displays_icon_countdown(char* prevDir, char* other) 
 {
-    timed_display(&matrix_display_paper, PSR_COUNTDOWN_TIME, prevDir, other);
-    timed_display(&matrix_display_scissors, PSR_COUNTDOWN_TIME, prevDir, other);
-    timed_display(&matrix_display_rock, PSR_COUNTDOWN_TIME, prevDir, other);
-    timed_display(&matrix_display_none, PSR_COUNTDOWN_TIME / 2, prevDir, other);
+    displays_timed_display(&matrix_display_paper, PSR_COUNTDOWN_TIME, prevDir, other);
+    displays_timed_display(&matrix_display_scissors, PSR_COUNTDOWN_TIME, prevDir, other);
+    displays_timed_display(&matrix_display_rock, PSR_COUNTDOWN_TIME, prevDir, other);
+    displays_timed_display(&matrix_display_none, PSR_COUNTDOWN_TIME / 2, prevDir, other);
 }
 
 
-void display_own(char* prevDir, char* other)
+void displays_own(char* prevDir, char* other)
 {
     pacer_wait();
     if (*prevDir == ROCK) {
-        timed_display(&matrix_display_rock, YOUR_CHOICE_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_rock, YOUR_CHOICE_TIME, prevDir, other);
     } else if (*prevDir == PAPER) {
-        timed_display(&matrix_display_paper, YOUR_CHOICE_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_paper, YOUR_CHOICE_TIME, prevDir, other);
     } else if (*prevDir == SCISSORS) {
-        timed_display(&matrix_display_scissors, YOUR_CHOICE_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_scissors, YOUR_CHOICE_TIME, prevDir, other);
     } else {
-        timed_display(&matrix_display_none, YOUR_CHOICE_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_none, YOUR_CHOICE_TIME, prevDir, other);
     }
 }
 
 
-void display_game_result(int8_t result, char* prevDir, char* other) 
+void displays_game_result(int8_t result, char* prevDir, char* other) 
 {
     if (result == -1) {
-        timed_display(&matrix_display_sad_face, RESULT_DISPLAY_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_sad_face, RESULT_DISPLAY_TIME, prevDir, other);
     } else if (result == 0) {
-        timed_display(&matrix_display_draw_face, RESULT_DISPLAY_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_draw_face, RESULT_DISPLAY_TIME, prevDir, other);
     } else if (result == 1) {
-        timed_display(&matrix_display_smiley_face, RESULT_DISPLAY_TIME, prevDir, other);
+        displays_timed_display(&matrix_display_smiley_face, RESULT_DISPLAY_TIME, prevDir, other);
     }
 }
 
-void display_overall_result(char playerScoreAsChar, char otherScore)
+void displays_overall_result(char playerScoreAsChar, char otherScore)
 {
     if (playerScoreAsChar > otherScore) {
         char result[11] = "Winner: 0\0";
         result[8] = playerScoreAsChar;
-        scrolling_text(result);
+        displays_scrolling_text(result);
     } else if (playerScoreAsChar < otherScore) {
         char result[10] = "Loser: 0\0";
         result[7] = playerScoreAsChar;
-        scrolling_text(result);
+        displays_scrolling_text(result);
     } else {
         char result[8] = "Draw: 0\0";
         result[6] = playerScoreAsChar;
-        scrolling_text(result);
+        displays_scrolling_text(result);
     }
 }
