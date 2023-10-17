@@ -129,7 +129,7 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
         if (mode == DUAL && ir_uart_read_ready_p()) {
             character = ir_uart_getc();
             if (character != 'P') {
-                state = (int)character; /// It must be an (int) to work..... WHY??
+                state = character - '0';
             } else {
                 return states[state];
             }
@@ -141,12 +141,12 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
             if (is_goal_nav(EAST)) {
                 state = (state + 1) % n;
                 if (mode == DUAL) {
-                    ir_uart_putc(state);
+                    ir_uart_putc(state + '0');
                 }
             } else if (is_goal_nav(WEST)) {
                 state = (state - 1 + n) % n;
                 if (mode == DUAL) {
-                    ir_uart_putc(state);
+                    ir_uart_putc(state + '0');
                 }
             } else if (is_goal_nav(PUSH)) {
                 matrix_init();
@@ -315,11 +315,12 @@ void icon_countdown(void)
 {
     
     timed_display(&display_paper, PSR_COUNTDOWN_TIME);
-    ir_uart_putc(prevDir);
+    //ir_uart_putc(prevDir);
     timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
-    ir_uart_putc(prevDir);
+    //ir_uart_putc(prevDir);
     timed_display(&display_rock, PSR_COUNTDOWN_TIME);
-    ir_uart_putc(prevDir);
+    //ir_uart_putc(prevDir);
+    timed_display(&display_none, PSR_COUNTDOWN_TIME / 2);
 
 }
 
