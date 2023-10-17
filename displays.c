@@ -20,7 +20,7 @@ void displays_show_bitmap(void(*displayfunc)(void), char direction)
         pacer_wait();
         displayfunc();
         navswitch_update();
-        if (((direction_moved() != NO_DIRECTION) && direction == ANY) || (is_goal_nav(direction))){
+        if (((nav_direction_moved() != NO_DIRECTION) && direction == ANY) || (nav_is_goal(direction))){
             matrix_init();
             break;
         }
@@ -45,7 +45,7 @@ void displays_timed_display(void(*displayfunc)(void), uint16_t milliseconds, cha
         if (ir_uart_read_ready_p()) {
             *other = ir_uart_getc();
         }
-        direction = direction_moved();
+        direction = nav_direction_moved();
         if (direction == NORTH || direction == EAST || direction == WEST) {
             *prevDir = direction;
             ir_uart_putc(*prevDir);

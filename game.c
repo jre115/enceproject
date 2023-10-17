@@ -95,18 +95,18 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
             tick = 0;
 
             // Checks if the navswitch has been moved east or west and sends this to other microcontroller if in DUAL mode
-            if (is_goal_nav(EAST)) {
+            if (nav_is_goal(EAST)) {
                 state = (state + 1) % n;
                 if (mode == DUAL) {
                     ir_uart_putc(state + '0');
                 }
-            } else if (is_goal_nav(WEST)) {
+            } else if (nav_is_goal(WEST)) {
                 state = (state - 1 + n) % n;
                 if (mode == DUAL) {
                     ir_uart_putc(state + '0');
                 }
             // Sends message if navswitch has been pushed if in DUAL mode and returns current displayed
-            } else if (is_goal_nav(PUSH)) {
+            } else if (nav_is_goal(PUSH)) {
                 matrix_init();
 
                 if (mode == DUAL) {
