@@ -113,37 +113,37 @@ void displayTutorial(void)
 }
 
 
-void icon_countdown(char prevDir, char other, const char player) 
+void icon_countdown(char* prevDir, char* other, const char player) 
 {
-    timed_display(&display_paper, PSR_COUNTDOWN_TIME, &prevDir, &other, player);
-    timed_display(&display_scissors, PSR_COUNTDOWN_TIME, &prevDir, &other, player);
-    timed_display(&display_rock, PSR_COUNTDOWN_TIME, &prevDir, &other, player);
-    timed_display(&display_none, PSR_COUNTDOWN_TIME / 2, &prevDir, &other, player);
+    timed_display(&display_paper, PSR_COUNTDOWN_TIME, prevDir, other, player);
+    timed_display(&display_scissors, PSR_COUNTDOWN_TIME, prevDir, other, player);
+    timed_display(&display_rock, PSR_COUNTDOWN_TIME, prevDir, other, player);
+    timed_display(&display_none, PSR_COUNTDOWN_TIME / 2, prevDir, other, player);
 }
 
 
-void display_own(char prevDir, char other, const char player)
+void display_own(char* prevDir, char* other, const char player)
 {
     pacer_wait();
-    if (prevDir == ROCK) {
-        timed_display(&display_rock, YOUR_CHOICE_TIME, &prevDir, &other, player);
-    } else if (prevDir == PAPER) {
-        timed_display(&display_paper, YOUR_CHOICE_TIME, &prevDir, &other, player);
-    } else if (prevDir == SCISSORS) {
-        timed_display(&display_scissors, YOUR_CHOICE_TIME, &prevDir, &other, player);
+    if (*prevDir == ROCK) {
+        timed_display(&display_rock, YOUR_CHOICE_TIME, prevDir, other, player);
+    } else if (*prevDir == PAPER) {
+        timed_display(&display_paper, YOUR_CHOICE_TIME, prevDir, other, player);
+    } else if (*prevDir == SCISSORS) {
+        timed_display(&display_scissors, YOUR_CHOICE_TIME, prevDir, other, player);
     } else {
-        timed_display(&display_none, YOUR_CHOICE_TIME, &prevDir, &other, player);
+        timed_display(&display_none, YOUR_CHOICE_TIME, prevDir, other, player);
     }
 }
 
 
-void display_game_result(int8_t result, char prevDir, char other, char player) 
+void display_game_result(int8_t result, char* prevDir, char* other, char player) 
 {
     if (result == -1) {
-        timed_display(&display_sad_face, RESULT_DISPLAY_TIME, &prevDir, &other, player);
+        timed_display(&display_sad_face, RESULT_DISPLAY_TIME, prevDir, other, player);
     } else if (result == 0) {
-        timed_display(&display_draw_face, RESULT_DISPLAY_TIME, &prevDir, &other, player);
+        timed_display(&display_draw_face, RESULT_DISPLAY_TIME, prevDir, other, player);
     } else if (result == 1) {
-        timed_display(&display_smiley_face, RESULT_DISPLAY_TIME, &prevDir, &other, player);
+        timed_display(&display_smiley_face, RESULT_DISPLAY_TIME, prevDir, other, player);
     }
 }

@@ -149,10 +149,10 @@ void game_start(char roundsChar, char player)
         // play a game of paper sissors rock and display winner
         other = NO_DIRECTION;
         prevDir = NO_DIRECTION;
-        icon_countdown(prevDir, other, player);
-        display_own(prevDir, other, player);
+        icon_countdown(&prevDir, &other, player);
+        display_own(&prevDir, &other, player);
         int8_t result = game_result();
-        display_game_result(result, prevDir, other, player);
+        display_game_result(result, &prevDir, &other, player);
         round++;
     }
 }
