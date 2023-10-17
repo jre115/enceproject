@@ -7,7 +7,7 @@
 #include "communication.h"
 
 
-char player1_player2(void)
+char communication_player_setup(void)
 {
     int current = 0;
     int decided = 0; 
@@ -37,7 +37,7 @@ char player1_player2(void)
 }
 
 
-char send_receive(char player, char message)
+char communication_send_and_recieve(char player, char message)
 {
     char receivedMessage = NO_DIRECTION;
     if (player == PLAYER1) {
@@ -54,7 +54,7 @@ char send_receive(char player, char message)
 }
 
 
-void wait(char player) {
+void communication_wait_for_other_player(char player) {
 
     uint16_t tick = 0;
     char character;

@@ -139,7 +139,7 @@ char set_num_rounds(void)
 void determine_and_display_overall_result(char player, int8_t playerScore)
 {
     char playerScoreAsChar = playerScore + '0';
-    char otherScore = send_receive(player, playerScoreAsChar);
+    char otherScore = communication_send_and_recieve(player, playerScoreAsChar);
 
     display_overall_result(playerScoreAsChar, otherScore);
 }    
@@ -149,7 +149,7 @@ int8_t game_start(char roundsChar, char player)
 {
     uint8_t rounds = roundsChar - '0';
     scrolling_text("Ready?\0");
-    wait(player);
+    communication_wait_for_other_player(player);
     uint8_t round = 0;
     int8_t playerScore = 0;
     while (round < rounds) {
@@ -171,7 +171,7 @@ int8_t game_start(char roundsChar, char player)
 char game_welcome(void)
 {
     led_set(LED1, 1);
-    char player = player1_player2();
+    char player = communication_player_setup();
     // TODO: when should we remove??
     if (player == PLAYER2) {
         led_set(LED1, 0); // Blue LED on
@@ -188,7 +188,7 @@ char game_welcome(void)
         displayTutorial();
     }
 
-    wait(player);
+    communication_wait_for_other_player(player);
 
     return player;
 }
@@ -237,7 +237,7 @@ int main (void)
 
         char options[] = {'Y', 'N'};
 
-        wait(player);
+        communication_wait_for_other_player(player);
         char character = selectAndDisplayOptions(options, 2, DUAL);
 
         if (character == 'Y') {

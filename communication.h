@@ -7,10 +7,10 @@
 #define PLAYER2 'E'
 #define PACER_RATE 500
 
-char player1_player2(void);
+char communication_player_setup(void);
 
-char send_receive(char player, char message);
+char communication_send_and_recieve(char player, char message);
 
-void wait(char player);
+void communication_wait_for_other_player(char player);
 
 #endif // COMMUNICATION_H
