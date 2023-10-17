@@ -193,11 +193,8 @@ char game_welcome(void)
     led_set(LED1, 1);
 
     char player = communication_player_setup();
-
-    // Only leave the light on to indicate player 1
-    if (player == PLAYER2) {
-        led_set(LED1, 0); 
-    }
+    
+    led_set(LED1, 0); 
 
     displays_scrolling_text("Welcome to PSR! Move to start\0");
 
