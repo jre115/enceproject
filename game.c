@@ -140,7 +140,7 @@ void disp_overall_result(char player)
         result[6] = playerScoreAsChar;
         scrolling_text(result);
     }
-}
+}    
 
 
 void game_start(char roundsChar, char player)
@@ -166,10 +166,11 @@ void game_start(char roundsChar, char player)
 /*Displays welcome message and tutorial*/
 char game_welcome(void)
 {
+    led_set(LED1, 1);
     char player = player1_player2();
     // TODO: when should we remove??
-    if (player == PLAYER1) {
-        led_set(LED1, 1); // Blue LED on
+    if (player == PLAYER2) {
+        led_set(LED1, 0); // Blue LED on
     }
 
     scrolling_text("Welcome to PSR! Move to start\0");
