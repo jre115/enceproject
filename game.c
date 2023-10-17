@@ -131,9 +131,13 @@ void disp_overall_result(char player)
         char result[11] = "Winner: 0\0";
         result[8] = playerScoreAsChar;
         scrolling_text(result);
-    } else {
+    } else if (playerScoreAsChar < otherScore) {
         char result[10] = "Loser: 0\0";
         result[7] = playerScoreAsChar;
+        scrolling_text(result);
+    } else {
+        char result[8] = "Draw: 0\0";
+        result[6] = playerScoreAsChar;
         scrolling_text(result);
     }
 }
@@ -146,6 +150,7 @@ void game_start(char roundsChar, char player)
     wait(player);
     uint8_t round = 0;
     while (round < rounds) {
+        led_set(LED1, 0);
         // play a game of paper sissors rock and display winner
         other = NO_DIRECTION;
         prevDir = NO_DIRECTION;
@@ -228,15 +233,17 @@ int main (void)
 
         char options[] = {'Y', 'N'};
 
-        char character = selectAndDisplayOptions(options, 2, INDIVIDUAL);
+        wait(player);
+        char character = selectAndDisplayOptions(options, 2, DUAL);
 
         if (character == 'Y') {
             playAgain = 1;
         } else {
             playAgain = 0;
+            led_set(LED1, 0);
+            matrix_init();
         }
 
-        wait(player);
 
     } while (playAgain);
 
