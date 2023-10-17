@@ -5,7 +5,6 @@
 #include "pacer.h"
 #include "matrix.h"
 #include "ir_uart.h"
-#include "timer.h"
 #include "led.h"
 #include "displays.h"
 
