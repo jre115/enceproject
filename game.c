@@ -39,18 +39,13 @@ typedef enum {
 } displayMode_t;
 
 
-/* Define the global variables */ // TODO: make these not global maybe
-static char prevDir = NO_DIRECTION;
-static char other = NO_DIRECTION;
-
-
 /* Define functions so not to have to worry about order */
 char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode);
 void determine_and_displays_overall_result(char player, int8_t playerScore);
 char set_num_rounds(void);
 int8_t game_start(char roundsChar, char player);
 char game_welcome(void);
-int8_t game_result(int8_t* playerScorePtr);
+int8_t game_result(int8_t* playerScorePtr, char* other, char* prevDir);
 
 /* initialises all required */
 void init_all(void)
@@ -127,8 +122,6 @@ char set_num_rounds(void)
 {
     displays_scrolling_text("How many rounds?\0");
     char roundOptions[NUMBER_OF_CHOICES_FOR_ROUNDS] = {'1', '3', '5', '7', '9'};
-
-    char roundOptions[NUMBER_OF_CHOICES_FOR_ROUNDS] = {'1', '3', '5', '7', '9'};
     char character = selectAndDisplayOptions(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS, DUAL);
     
     // displays chosen number of rounds
@@ -139,6 +132,7 @@ char set_num_rounds(void)
 
     return character;
 }
+
 
 /* Prompts the users to communicate their results and displays the compared results*/
 void determine_and_displays_overall_result(char player, int8_t playerScore)
@@ -151,22 +145,29 @@ void determine_and_displays_overall_result(char player, int8_t playerScore)
 }    
 
 
+/* Plays the game by round for the inputted number of rounds*/
 int8_t game_start(char roundsChar, char player)
-{
+{   
+    // converts the roundsChar to the number as an int
     uint8_t rounds = roundsChar - '0';
     displays_scrolling_text("Ready?\0");
     communication_wait_for_other_player(player);
+
     uint8_t round = 0;
     int8_t playerScore = 0;
+
     while (round < rounds) {
+        // reset light and selected moves at the start of each round
         led_set(LED1, 0);
-        // play a game of paper sissors rock and display winner
-        other = NO_DIRECTION;
-        prevDir = NO_DIRECTION;
+        char other = NO_DIRECTION;
+        char prevDir = NO_DIRECTION;
+
+        // play a game of paper sissors rock, display their own result then display the winner
         displays_icon_countdown(&prevDir, &other);
         displays_own(&prevDir, &other);
-        int8_t result = game_result(&playerScore);
+        int8_t result = game_result(&playerScore, &prevDir, &other);
         displays_game_result(result, &prevDir, &other);
+        
         round++;
     }
     return playerScore;
@@ -200,23 +201,23 @@ char game_welcome(void)
 }
 
 
-int8_t game_result(int8_t* playerScorePtr) 
+int8_t game_result(int8_t* playerScorePtr, char* other, char* prevDir) 
 {
     int8_t result = 0;
-    if (other == prevDir) {
+    if ((*other) == (*prevDir)) {
         result = 0;
-    } else if (other == NO_DIRECTION) {
+    } else if ((*other) == NO_DIRECTION) {
         result = 1;
         (*playerScorePtr)++;
-    } else if (prevDir == NO_DIRECTION) {
+    } else if ((*prevDir) == NO_DIRECTION) {
         result = -1;
-    } else if (prevDir == ROCK && other == SCISSORS) {
+    } else if ((*prevDir) == ROCK && (*other) == SCISSORS) {
         result = 1;
         (*playerScorePtr)++;
-    } else if (prevDir == PAPER && other == ROCK) {
+    } else if ((*prevDir) == PAPER && (*other) == ROCK) {
         result = 1;
         (*playerScorePtr)++;
-    } else if (prevDir == SCISSORS && other == PAPER) {
+    } else if ((*prevDir) == SCISSORS && (*other) == PAPER) {
         result = 1;
         (*playerScorePtr)++;
     } else {

@@ -25,3 +25,5 @@ void displays_own(char* prevDir, char* other);
 void displays_game_result(int8_t result, char* prevDir, char* other);
 
 void displays_overall_result(char playerScoreAsChar, char otherScore);
+
+#endif //DISPLAYS_H
