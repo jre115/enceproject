@@ -28,7 +28,7 @@ void show_display(void(*displayfunc)(void), char direction)
 }
 
 
-void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDir, char* other, const char player)
+void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDir, char* other)
 {
     uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
     char direction;
@@ -56,39 +56,6 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDi
 }
 
 
-// char encodeDirection(char direction) {
-//     switch (direction) {
-//         case NORTH:
-//             return 'N';
-//         case EAST:
-//             return 'E';
-//         case WEST:
-//             return 'W';
-//         case NO_DIRECTION:
-//             return 'J';
-//         default:
-//             // Handle invalid direction
-//             return '?';
-//     }
-// }
-
-// char decodeDirection(char encodedDirection) {
-//     switch (encodedDirection) {
-//         case 'N':
-//             return NORTH;
-//         case 'E':
-//             return EAST;
-//         case 'W':
-//             return WEST;
-//         case 'J':
-//             return NO_DIRECTION;
-//         default:
-//             // Handle invalid encoded direction
-//             return '?';
-//     }
-// }
-
-
 void scrolling_text(char* text)
 {
     matrix_init_text(text);
@@ -113,37 +80,37 @@ void displayTutorial(void)
 }
 
 
-void icon_countdown(char* prevDir, char* other, const char player) 
+void icon_countdown(char* prevDir, char* other) 
 {
-    timed_display(&display_paper, PSR_COUNTDOWN_TIME, prevDir, other, player);
-    timed_display(&display_scissors, PSR_COUNTDOWN_TIME, prevDir, other, player);
-    timed_display(&display_rock, PSR_COUNTDOWN_TIME, prevDir, other, player);
-    timed_display(&display_none, PSR_COUNTDOWN_TIME / 2, prevDir, other, player);
+    timed_display(&display_paper, PSR_COUNTDOWN_TIME, prevDir, other);
+    timed_display(&display_scissors, PSR_COUNTDOWN_TIME, prevDir, other);
+    timed_display(&display_rock, PSR_COUNTDOWN_TIME, prevDir, other);
+    timed_display(&display_none, PSR_COUNTDOWN_TIME / 2, prevDir, other);
 }
 
 
-void display_own(char* prevDir, char* other, const char player)
+void display_own(char* prevDir, char* other)
 {
     pacer_wait();
     if (*prevDir == ROCK) {
-        timed_display(&display_rock, YOUR_CHOICE_TIME, prevDir, other, player);
+        timed_display(&display_rock, YOUR_CHOICE_TIME, prevDir, other);
     } else if (*prevDir == PAPER) {
-        timed_display(&display_paper, YOUR_CHOICE_TIME, prevDir, other, player);
+        timed_display(&display_paper, YOUR_CHOICE_TIME, prevDir, other);
     } else if (*prevDir == SCISSORS) {
-        timed_display(&display_scissors, YOUR_CHOICE_TIME, prevDir, other, player);
+        timed_display(&display_scissors, YOUR_CHOICE_TIME, prevDir, other);
     } else {
-        timed_display(&display_none, YOUR_CHOICE_TIME, prevDir, other, player);
+        timed_display(&display_none, YOUR_CHOICE_TIME, prevDir, other);
     }
 }
 
 
-void display_game_result(int8_t result, char* prevDir, char* other, char player) 
+void display_game_result(int8_t result, char* prevDir, char* other) 
 {
     if (result == -1) {
-        timed_display(&display_sad_face, RESULT_DISPLAY_TIME, prevDir, other, player);
+        timed_display(&display_sad_face, RESULT_DISPLAY_TIME, prevDir, other);
     } else if (result == 0) {
-        timed_display(&display_draw_face, RESULT_DISPLAY_TIME, prevDir, other, player);
+        timed_display(&display_draw_face, RESULT_DISPLAY_TIME, prevDir, other);
     } else if (result == 1) {
-        timed_display(&display_smiley_face, RESULT_DISPLAY_TIME, prevDir, other, player);
+        timed_display(&display_smiley_face, RESULT_DISPLAY_TIME, prevDir, other);
     }
 }
