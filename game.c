@@ -416,10 +416,22 @@ char send_receive(char player, char message)
     char receivedMessage = NO_DIRECTION;
     if (player == PLAYER1) {
         ir_uart_putc(message);
-        pacer_wait();
-        receivedMessage = ir_uart_getc();
+        while (1) {
+            pacer_wait();
+            if (ir_uart_read_ready_p()) {
+                receivedMessage = ir_uart_getc();
+                break;
+            }
+        }
+
     } else if (player == PLAYER2) {
-        receivedMessage = ir_uart_getc();
+        while (1) {
+            pacer_wait();
+            if (ir_uart_read_ready_p()) {
+                receivedMessage = ir_uart_getc();
+                break;
+            }
+        }
         pacer_wait();
         ir_uart_putc(message);
     }
