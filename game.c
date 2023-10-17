@@ -20,9 +20,9 @@
 #include "displays.h"
 
 #define PACER_RATE 500
+#define SEND_RATE_DISPLAY 20
 #define NUMBER_OF_CHOICES_FOR_START 2
 #define NUMBER_OF_CHOICES_FOR_ROUNDS 5
-#define SEND_RATE_DISPLAY 20
 
 #define PLAYER1 'A'
 #define PLAYER2 'E'
@@ -34,6 +34,7 @@
 #define LOSS -1
 #define DRAW 0
 #define WIN 1
+
 
 /* used to represent the different type of display modes. Dual if the toggles
 and push to select work across both fun kits. Otherwise individual.*/
@@ -50,6 +51,7 @@ char game_set_num_rounds(void);
 int8_t game_start(char rounds_char, char player);
 char game_welcome(void);
 int8_t game_result(int8_t* player_score_ptr, char* previous_direction, char* other_players_direction);
+
 
 /* initialises all required */
 void init_all(void)
@@ -148,6 +150,7 @@ void game_determine_and_display_overall_result(char player, int8_t player_score)
     displays_overall_result(playerScoreAsChar, otherScore);
 }    
 
+
 /*
  * Plays a round-based game of Paper, Scissors, Rock (PSR) for the specified number of rounds,
  * updating the player's score based on the outcomes of each round.
@@ -241,6 +244,7 @@ int8_t game_result(int8_t* player_score_ptr, char* previous_direction, char* oth
 
     return result;
 }
+
 
 /* Main function to initialise the game, handle game flow,
 and allow players to play multiple rounds. */

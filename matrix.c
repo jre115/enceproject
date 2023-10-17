@@ -12,6 +12,7 @@
 #include "matrix.h"
 #include "../fonts/font5x7_1.h"
 
+
 /* Initialises the led matrix*/
 void matrix_init(void)
 {
@@ -30,6 +31,7 @@ void matrix_init_text(char* text)
     tinygl_text_speed_set(MESSAGE_RATE);
     tinygl_text(text);
 }
+
 
 /* Displays the next column of a shape on the LED matrix.
 The shape is represented by the bitmap array.*/
@@ -54,6 +56,7 @@ void matrix_disp_text(void)
     tinygl_update();
 }
 
+
 /*Displays a single character on the LED matrix using tinygl*/
 void matrix_display_character (char character)
 {
@@ -68,7 +71,6 @@ void matrix_display_character (char character)
 
 
 /* Different bit map displays */
-
 
 /* Displays the bitmap array for the rock icon*/
 void matrix_display_rock(void)
@@ -85,12 +87,14 @@ void matrix_display_scissors(void)
     matrix_display_shape(scissormap);
 }
 
+
 /* Displays the bitmap array for the paper icon*/
 void matrix_display_paper(void)
 {
     uint8_t papermap[] = {0x7F, 0x41, 0x41, 0x41, 0x7F};
     matrix_display_shape(papermap);
 }
+
 
 /* Displays the bitmap array for the north arrow icon*/
 void matrix_display_north_arrow(void)
@@ -146,6 +150,7 @@ void matrix_display_sand_timer(void)
     uint8_t bitmap[] = {0x41, 0x63, 0x5F, 0x63, 0x41};
     matrix_display_shape(bitmap);
 }
+
 
 /* Displays the bitmap array for the fine face when there is a draw icon*/
 void matrix_display_draw_face(void)

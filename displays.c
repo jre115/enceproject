@@ -77,7 +77,6 @@ void displays_scrolling_text(char* text)
 {
     matrix_init_text(text);
     displays_show_bitmap(&matrix_disp_text, ANY);
-
 }
 
 
