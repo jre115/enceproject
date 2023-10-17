@@ -1,9 +1,16 @@
+/*
+# File:   nav.c
+# Author: J. Redfern, R. Campbell-Stokes
+# Date:   18 October 2023
+# Descr:  contains logic for the navigation switch
+*/
+
 #include "system.h"
 #include "navswitch.h"
 #include "nav.h"
 
 
-/* Returns value of direction if the navswitch has been moved, otherwise returns 0*/
+/* Returns value of direction if the navswitch has been moved, otherwise returns No Direction*/
 char nav_direction_moved(void)
 {
     if (navswitch_push_event_p(NAVSWITCH_NORTH)) {
@@ -21,8 +28,8 @@ char nav_direction_moved(void)
     return NO_DIRECTION;
 }
 
-/* returns 1 if the direction pushed matches the desired direction*/
 
+/* returns True if the direction pushed matches the desired direction amd false if not*/
 int8_t nav_is_goal(int8_t goal)
 {
     int8_t direction = nav_direction_moved();
