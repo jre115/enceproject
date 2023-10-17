@@ -24,9 +24,9 @@
 #define NUMBER_OF_CHOICES_FOR_ROUNDS 5
 #define SEND_RATE_DISPLAY 20
 
-// these should be in the other_players_direction header files!!
 #define PLAYER1 'A'
 #define PLAYER2 'E'
+
 #define ROCK NORTH
 #define PAPER EAST
 #define SCISSORS WEST
@@ -159,27 +159,31 @@ int8_t game_start(char rounds_char, char player)
     uint8_t round = 0;
     int8_t player_score = 0;
     while (round < rounds) {
-        led_set(LED1, 0);
+        led_set(LED1, 0); // Blue LED off
+
         // play a game of paper sissors rock and display winner
         other_players_direction = NO_DIRECTION;
         previous_direction = NO_DIRECTION;
+
         displays_icon_countdown(&previous_direction, &other_players_direction);
         displays_own(&previous_direction, &other_players_direction);
+
         int8_t result = game_result(&player_score);
         displays_game_result(result, &previous_direction, &other_players_direction);
+
         round++;
     }
     return player_score;
 }
 
 
-/*Displays welcome message and tutorial*/
+/* Displays welcome message and tutorial */
 char game_welcome(void)
 {
     led_set(LED1, 1);
     char player = communication_player_setup();
     if (player == PLAYER2) {
-        led_set(LED1, 0); // Blue LED on
+        led_set(LED1, 0); // Blue LED off
     }
 
     displays_scrolling_text("Welcome to PSR! Move to start\0");
