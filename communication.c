@@ -1,3 +1,10 @@
+/*
+# File:   communication.c
+# Author: J. Redfern, R. Campbell-Stokes
+# Date:   18 October 2023
+# Descr:  Declares functions for player setup and communication using infrared
+*/
+
 #include "system.h"
 #include "navswitch.h"
 #include "pacer.h"
@@ -7,10 +14,12 @@
 #include "communication.h"
 
 
+/* Sets up players by allowing them to select a role. First person to move the nav
+stick will be player 1. Returns the current player*/
 char communication_player_setup(void)
 {
-    int current = 0;
-    int decided = 0; 
+    char current = '0';
+    uint8_t decided = FALSE; 
     char player = 'A';
     char sendChar = 'B';
 
@@ -18,7 +27,7 @@ char communication_player_setup(void)
         navswitch_update();
         
         if (nav_direction_moved() != NO_DIRECTION) {
-            decided = 1;
+            decided = TRUE;
             ir_uart_putc(sendChar);
             current = PLAYER1;
         }
@@ -28,7 +37,7 @@ char communication_player_setup(void)
         } 
         
         if (player == 'B') {
-            decided = 1;
+            decided = TRUE;
             current = PLAYER2;
         }
     }
@@ -36,7 +45,7 @@ char communication_player_setup(void)
     return current;
 }
 
-
+/*Sends a message from one player to another and waits to receive a response depending on player order*/
 char communication_send_and_recieve(char player, char message)
 {
     char receivedMessage = NO_DIRECTION;
@@ -53,16 +62,17 @@ char communication_send_and_recieve(char player, char message)
     return receivedMessage;
 }
 
-
+/*Waits for the other player to signal readiness before starting the game*/
 void communication_wait_for_other_player(char player) {
 
     uint16_t tick = 0;
     char character;
     navswitch_init();
-    uint8_t recev = 0;
+    uint8_t recev = FALSE;
 
     if (player == PLAYER1) {
         while(recev == 0) {
+            // Increment the timer and display a sand timer animation for 'waiting'
             tick++;
             matrix_display_sand_timer();
             pacer_wait();
@@ -71,23 +81,26 @@ void communication_wait_for_other_player(char player) {
                 tick = 0;
                 ir_uart_putc(player);
             }
-    
+
+            // If a signal is received from PLAY/*Waits for the other player to signal readiness before starting the game*/
+ER2, set the flag to exit the loop
             if (ir_uart_read_ready_p()) {
                 character = ir_uart_getc();
                 if (character == PLAYER2) {
-                    recev = 1;
+                    recev = TRUE;
                 }
             }
         }
         
     } else if (player == PLAYER2) {
-        while (recev == 0) {
+        while (recev == FALSE) {
             matrix_display_sand_timer();
             pacer_wait();
+
             if (ir_uart_read_ready_p()) {
                 character = ir_uart_getc();
                 if (character == PLAYER1) {
-                    recev = 1;
+                    recev = TRUE;
                     ir_uart_putc(player);
                 }
             }
