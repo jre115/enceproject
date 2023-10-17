@@ -37,11 +37,19 @@
 #define WEST 4
 #define PUSH 5
 
+#define OTHER_ROCK '0'
+#define OTHER_PAPER '1'
+#define OTHER_SCISSORS '2'
+#define ROCK NORTH
+#define PAPER EAST
+#define SCISSORS WEST
+
 #define PLAYER1 'A'
 #define PLAYER2 'E'
 
 
-uint8_t prevDir;
+static uint8_t prevDir = 0;
+static char other;
 
 void show_display(void(*displayfunc)(void), uint8_t direction);
 void displayTutorial(void);
@@ -76,31 +84,6 @@ void show_display(void(*displayfunc)(void), uint8_t direction)
     }
 }
 
-void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
-{
-    uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
-
-    TCNT1 = 0;
-    while (TCNT1 < ticks) {
-        navswitch_update();
-        // push event:
-        // do this
-        uint8_t direction = direction_moved();
-        if (direction != 0) {
-            prevDir = direction;
-            PORTC |= (1 << 2); // led on
-        }
-        displayfunc();
-    }
-    matrix_init();
-
-    // overarching loop
-    // run ticks
-    // can just turn LED on, then turn off when doing IR stuff
-    // make it fast enough that it looks like the display is always on,
-    // inbetween this time though check for navswitch flicks which will set the users option
-    // will need to change how this is done so that it works in the big loop.
-}
 
 void displayTutorial(void)
 {
@@ -140,7 +123,7 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
     char character;
     navswitch_update();
 
-    uint16_t sendRate = 20;
+    uint16_t sendRate = 20; // #define??
 
 
     
@@ -154,7 +137,7 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
         if (mode == DUAL && ir_uart_read_ready_p()) {
             character = ir_uart_getc();
             if (character != 'P') {
-                state = character - '0'; /// JR NOTE FIX THIS ?? ??? 
+                state = (int)character; /// It must be an (int) to work..... WHY??
             } else {
                 return states[state];
             }
@@ -182,7 +165,7 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
             }
             
         }
-        tick += 1;
+        tick++;
     
     }
 
@@ -197,7 +180,6 @@ void wait(char player) {
     char character;
     uint16_t sendRate = 20;
     navswitch_init();
-    //uint16_t counter = 0;
     uint8_t recev = 0;
 
 
@@ -233,7 +215,6 @@ void wait(char player) {
 
         ir_uart_putc(player);
 
-
     }
 }
 
@@ -266,42 +247,6 @@ char player1_player2(void)
     PORTC &= ~(1 << 2); // led off
     return current;
 }
-
-
-/*
-
-void wait_both_ready(void) {
-    init_text("Waiting for other player...\0");
-    uint16_t tick = 0;
-    uint16_t totalCount = 0;
-    char character;
-    uint16_t timeout = 7500;
-    uint16_t sendRate = 10;
-    navswitch_init();
-    ir_uart_init();
-
-    while (totalCount < timeout) {
-        tick += 1;
-        totalCount += 1;
-        pacer_wait();
-        disp_text();
-
-        if (ir_uart_read_ready_p()) {
-            character = ir_uart_getc();
-            if (character == RECEVPLAYER2) {
-                ir_uart_putc(RECEVPLAYER1);
-                return 2;
-            } else {
-                return 1;
-            }
-        } else if (tick > PACER_RATE / sendRate) {
-            tick = 0;
-            ir_uart_putc(RECEVPLAYER2);
-        }
-    }
-
-}
-*/
 
 
 /*Displays welcome message and tutorial*/
@@ -364,25 +309,121 @@ char set_num_rounds(void)
     char character = selectAndDisplayOptions(roundOptions, numOptions, DUAL);
     matrix_init();
     
-    char result[11] = "Chosen 0 \0";
+    char result[10] = "Chosen 0 \0";
     result[7] = character;
     scrolling_text(result);
 
     return character;
 }
 
-#define OTHER_ROCK '0'
-#define OTHER_PAPER '1'
-#define OTHER_SCISSORS '2'
-#define ROCK NORTH
-#define PAPER EAST
 
+void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
+{
+    uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
+    uint8_t direction;
+    matrix_init();
+
+
+    // uint8_t prevDir = 0;
+
+    TCNT1 = 0;
+    while (TCNT1 < ticks) {
+        navswitch_update();
+        // push event:
+        // do this
+        if (ir_uart_read_ready_p()) {
+            other = ir_uart_getc();
+        }
+        direction = direction_moved();
+        if (direction != 0) {
+            prevDir = direction;
+            ir_uart_putc(prevDir);
+            PORTC |= (1 << 2); // led on
+        }
+        displayfunc();
+    }
+    matrix_init();
+
+    // return prevDir;
+
+    // overarching loop
+    // run ticks
+    // can just turn LED on, then turn off when doing IR stuff
+    // make it fast enough that it looks like the display is always on,
+    // inbetween this time though check for navswitch flicks which will set the users option
+    // will need to change how this is done so that it works in the big loop.
+}
 
 void icon_countdown(void) 
 {
-    uint8_t other = ir_uart_getc();
+    
+    timed_display(&display_paper, PSR_COUNTDOWN_TIME);
+    ir_uart_putc(prevDir);
+    timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
+    ir_uart_putc(prevDir);
+    timed_display(&display_rock, PSR_COUNTDOWN_TIME);
+    ir_uart_putc(prevDir);
 
-    if (other == (char)prevDir) {
+}
+
+
+void game_result(void) {
+
+    pacer_wait();
+    if (other == OTHER_ROCK) {
+        timed_display(&display_rock, PSR_COUNTDOWN_TIME);
+    } else if (other == OTHER_PAPER) {
+        timed_display(&display_paper, PSR_COUNTDOWN_TIME);
+    } else if (other == OTHER_SCISSORS) {
+        timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
+    } else {
+        timed_display(&display_none, PSR_COUNTDOWN_TIME);
+    }
+
+    pacer_wait();
+    if (prevDir == NORTH) {
+        timed_display(&display_rock, PSR_COUNTDOWN_TIME);
+    } else if (prevDir == EAST) {
+        timed_display(&display_paper, PSR_COUNTDOWN_TIME);
+    } else if (prevDir == WEST) {
+        timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
+    } else {
+        timed_display(&display_none, PSR_COUNTDOWN_TIME);
+    }
+
+
+
+
+
+
+
+
+
+
+    /*
+    char this_choice;
+    if (prevDir == ROCK) {
+        this_choice = OTHER_ROCK;
+    } else if (prevDir == PAPER) {
+        this_choice = OTHER_PAPER;
+    } else if (prevDir == SCISSORS) {
+        this_choice = OTHER_SCISSORS;
+    } else {
+        this_choice = 'N';
+    }
+
+    matrix_init();
+    disp_character(prevDir);
+    while(1) {
+        disp_text();
+    }
+    
+
+    if (this_choice == 'N') {
+        scrolling_text("NOTHING\0");
+    }
+
+    if (other == this_choice) {
         if (prevDir == NORTH) {
             timed_display(&display_rock, PSR_COUNTDOWN_TIME);  // if rock draw
         } else if (prevDir == EAST) {
@@ -393,35 +434,42 @@ void icon_countdown(void)
         
     } else if (other == OTHER_ROCK) {
         if (prevDir == SCISSORS) {
-            scrolling_text("LOSE");
+            scrolling_text("LOSE\0");
         } else if (prevDir == PAPER) {
-            scrolling_text("WIN");
+            scrolling_text("WIN\0");
         }
 
     } else if (other == OTHER_PAPER) {
         if (prevDir == ROCK) {
-            scrolling_text("LOSE");
+            scrolling_text("LOSE\0");
         } else if (prevDir == SCISSORS) {
-            scrolling_text("WIN");
+            scrolling_text("WIN\0");
         }
 
     } else if (other == OTHER_SCISSORS) {
         if (prevDir == PAPER) {
-            scrolling_text("LOSE");
+            scrolling_text("LOSE\0");
         } else if (prevDir == ROCK) {
-            scrolling_text("WIN");
+            scrolling_text("WIN\0");
         }
+    } else {
+        scrolling_text("NA\0");
     }
+
+    */
+}
 
 
 void game_start(char roundsChar, char player)
 {
     uint8_t rounds = roundsChar - '0';
-    scrolling_text("Ready?\0");
+    // PORTC &= ~(1 << 2); // led off
     for (uint8_t i = 0; i < rounds; i++) {
         // play a game of paper sissors rock and display winner
+        scrolling_text("Ready?\0");
         wait(player);
         icon_countdown();
+        game_result();
         
     }
 }
@@ -433,7 +481,7 @@ int main (void)
     init_all();
     pacer_init(PACER_RATE);
 
-   char player = game_welcome(); // whoop whoop this is all good :)
+    char player = game_welcome(); // whoop whoop this is all good :)
     
     char numRounds = set_num_rounds();
     game_start(numRounds, player);
