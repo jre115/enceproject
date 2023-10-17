@@ -69,6 +69,7 @@ void wait(char player) {
             tick++;
             display_sand_timer();
             pacer_wait();
+
             if (tick > PACER_RATE) {
                 tick = 0;
                 ir_uart_putc(player);
@@ -81,6 +82,7 @@ void wait(char player) {
                 }
             }
         }
+        
     } else if (player == PLAYER2) {
         while (recev == 0) {
             display_sand_timer();
@@ -89,16 +91,9 @@ void wait(char player) {
                 character = ir_uart_getc();
                 if (character == PLAYER1) {
                     recev = 1;
+                    ir_uart_putc(player);
                 }
             }
         }
-
-        // make sure it is sent TODO: tidy?
-        ir_uart_putc(player);
-        pacer_wait();
-        ir_uart_putc(player);
-        pacer_wait();
-        ir_uart_putc(player);
-
     }
 }

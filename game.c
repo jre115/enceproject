@@ -51,6 +51,7 @@ void init_all(void)
     matrix_init();
     navswitch_init ();
     ir_uart_init();
+    pacer_init(PACER_RATE);
 }
 
 
@@ -190,28 +191,20 @@ int8_t game_result(void)
         result = 0;
     } else if (other == NO_DIRECTION) {
         result = 1;
+        playerScore++;
     } else if (prevDir == NO_DIRECTION) {
         result = -1;
-        playerScore = playerScore + 1;
-    } else if (other == ROCK) {
-        if (prevDir == SCISSORS) {
-            result = -1;
-        } else if (prevDir == PAPER) {
-            result = 1;
-        }
-    } else if (other == PAPER) {
-        if (prevDir == ROCK) {
-            result = -1;
-        } else if (prevDir == SCISSORS) {
-            result = 1;
-        }
-
-    } else if (other == SCISSORS) {
-        if (prevDir == PAPER) {
-            result = -1;
-        } else if (prevDir == ROCK) {
-            result = 1;
-        }
+    } else if (prevDir == ROCK && other == SCISSORS) {
+        result = 1;
+        playerScore++;
+    } else if (prevDir == PAPER && other == ROCK) {
+        result = 1;
+        playerScore++;
+    } else if (prevDir == SCISSORS && other == PAPER) {
+        result = 1;
+        playerScore++;
+    } else {
+        result = -1;
     }
 
     return result;
@@ -221,7 +214,7 @@ int8_t game_result(void)
 int main (void)
 {
     init_all();
-    pacer_init(PACER_RATE);
+
     int8_t playAgain;
     char player = game_welcome(); // whoop whoop this is all good :)
     
