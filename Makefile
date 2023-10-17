@@ -22,7 +22,7 @@ game.o: game.c ../../drivers/avr/system.h ../../drivers/avr/pio.h pacer.h ../../
 system.o: ../../drivers/avr/system.c ../../drivers/avr/system.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-pacer.o: pacer.c ../../drivers/avr/system.h ../../drivers/avr/timer.h pacer.h
+pacer.o: pacer.c ../../drivers/avr/system.h pacer.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 navswitch.o: ../../drivers/navswitch.c ../../drivers/avr/delay.h ../../drivers/avr/pio.h ../../drivers/avr/system.h ../../drivers/navswitch.h
@@ -61,9 +61,6 @@ usart1.o: ../../drivers/avr/usart1.c ../../drivers/avr/system.h ../../drivers/av
 prescale.o: ../../drivers/avr/prescale.c ../../drivers/avr/prescale.h ../../drivers/avr/system.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-timer.o: ../../drivers/avr/timer.c ../../drivers/avr/system.h ../../drivers/avr/timer.h
-	$(CC) -c $(CFLAGS) $< -o $@
-
 led.o: ../../drivers/led.c ../../drivers/avr/pio.h ../../drivers/avr/system.h ../../drivers/led.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
@@ -74,7 +71,7 @@ displays.o: displays.c ../../drivers/avr/system.h ../../drivers/navswitch.h nav.
 	$(CC) -c $(CFLAGS) $< -o $@
 	
 # Link: create ELF output file from object files.
-game.out: game.o system.o pacer.o navswitch.o matrix.o display.o ledmat.o font.o tinygl.o nav.o ir_uart.o pio.o timer0.o usart1.o prescale.o timer.o led.o communication.o displays.o
+game.out: game.o system.o pacer.o navswitch.o matrix.o display.o ledmat.o font.o tinygl.o nav.o ir_uart.o pio.o timer0.o usart1.o prescale.o led.o communication.o displays.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
