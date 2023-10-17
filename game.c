@@ -46,7 +46,7 @@ static char other = NO_DIRECTION;
 
 /* Define functions so not to have to worry about order */
 char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode);
-void determine_and_display_overall_result(char player, int8_t playerScore);
+void determine_and_displays_overall_result(char player, int8_t playerScore);
 char set_num_rounds(void);
 int8_t game_start(char roundsChar, char player);
 char game_welcome(void);
@@ -77,7 +77,8 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 
     while (1) {
         pacer_wait();
-        disp_character(states[state]);
+
+        matrix_display_character(states[state]);
         matrix_disp_text();
 
         // check for incoming characters in dual mode.
@@ -124,7 +125,8 @@ char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode)
 Either users can toggle and select the number of rounds*/
 char set_num_rounds(void)
 {
-    scrolling_text("How many rounds?\0");
+    displays_scrolling_text("How many rounds?\0");
+    char roundOptions[NUMBER_OF_CHOICES_FOR_ROUNDS] = {'1', '3', '5', '7', '9'};
 
     char roundOptions[NUMBER_OF_CHOICES_FOR_ROUNDS] = {'1', '3', '5', '7', '9'};
     char character = selectAndDisplayOptions(roundOptions, NUMBER_OF_CHOICES_FOR_ROUNDS, DUAL);
@@ -133,38 +135,38 @@ char set_num_rounds(void)
     matrix_init();
     char result[10] = "Chosen 0 \0";
     result[7] = character;
-    scrolling_text(result);
+    displays_scrolling_text(result);
 
     return character;
 }
 
 /* Prompts the users to communicate their results and displays the compared results*/
-void determine_and_display_overall_result(char player, int8_t playerScore)
+void determine_and_displays_overall_result(char player, int8_t playerScore)
 {   
     // converts the player score to a char for comparison
     char playerScoreAsChar = playerScore + '0';
-    char otherScore = send_receive(player, playerScoreAsChar);
+    char otherScore = communication_send_and_recieve(player, playerScoreAsChar);
 
-    display_overall_result(playerScoreAsChar, otherScore);
+    displays_overall_result(playerScoreAsChar, otherScore);
 }    
 
 
 int8_t game_start(char roundsChar, char player)
 {
     uint8_t rounds = roundsChar - '0';
-    scrolling_text("Ready?\0");
-    wait(player);
+    displays_scrolling_text("Ready?\0");
+    communication_wait_for_other_player(player);
     uint8_t round = 0;
     int8_t playerScore = 0;
     while (round < rounds) {
         led_set(LED1, 0);
         // play a game of paper sissors rock and display winner
-        char other = NO_DIRECTION;
-        char prevDir = NO_DIRECTION;
-        icon_countdown(&prevDir, &other);
-        display_own(&prevDir, &other);
+        other = NO_DIRECTION;
+        prevDir = NO_DIRECTION;
+        displays_icon_countdown(&prevDir, &other);
+        displays_own(&prevDir, &other);
         int8_t result = game_result(&playerScore);
-        display_game_result(result, &prevDir, &other);
+        displays_game_result(result, &prevDir, &other);
         round++;
     }
     return playerScore;
@@ -175,24 +177,24 @@ int8_t game_start(char roundsChar, char player)
 char game_welcome(void)
 {
     led_set(LED1, 1);
-    char player = player1_player2();
+    char player = communication_player_setup();
     // TODO: when should we remove??
     if (player == PLAYER2) {
         led_set(LED1, 0); // Blue LED on
     }
 
-    scrolling_text("Welcome to PSR! Move to start\0");
-    scrolling_text("View tutorial?\0");
+    displays_scrolling_text("Welcome to PSR! Move to start\0");
+    displays_scrolling_text("View tutorial?\0");
 
     char options[NUMBER_OF_CHOICES_FOR_START] = {'Y', 'N'};
 
     char character = selectAndDisplayOptions(options, NUMBER_OF_CHOICES_FOR_START, INDIVIDUAL);
 
     if (character == 'Y') {
-        displayTutorial();
+        displays_tutorial();
     }
 
-    wait(player);
+    communication_wait_for_other_player(player);
 
     return player;
 }
@@ -235,13 +237,13 @@ int main (void)
     do {
         char numRounds = set_num_rounds();
         int8_t playerScore = game_start(numRounds, player);
-        determine_and_display_overall_result(player, playerScore);
+        determine_and_displays_overall_result(player, playerScore);
         
-        scrolling_text("Play Again?\0");
+        displays_scrolling_text("Play Again?\0");
 
         char options[] = {'Y', 'N'};
 
-        wait(player);
+        communication_wait_for_other_player(player);
         char character = selectAndDisplayOptions(options, 2, DUAL);
 
         if (character == 'Y') {
