@@ -303,7 +303,7 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
             other = ir_uart_getc();
         }
         direction = direction_moved();
-        if (direction == NORTH || direction == EAST or direction == WEST) {
+        if (direction == NORTH || direction == EAST || direction == WEST) {
             prevDir = direction;
             ir_uart_putc(prevDir);
             PORTC |= (1 << 2); // led on
@@ -414,7 +414,6 @@ void game_start(char roundsChar, char player)
 char send_receive(char player, char message)
 {
     char receivedMessage = NO_DIRECTION;
-NO_DIRECTION
     if (player == PLAYER1) {
         ir_uart_putc(message);
         pacer_wait();
@@ -469,6 +468,7 @@ char send_receive(char player, char message)
 
 void disp_overall_result(char player)
 {
+    PORTC |= (1 << 2); // led on
     char playerScoreAsChar = playerScore + '0';
     char otherScore = send_receive(player, playerScoreAsChar);
 
