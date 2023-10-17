@@ -1,8 +1,8 @@
 /*
-# File:   displays.h
+# File:   pacer.h
 # Author: J. Redfern, R. Campbell-Stokes
 # Date:   18 October 2023
-# Descr:  Contains logic for the pacer function
+# Descr:  Contains logic for the pacer function. Custom function.
 */
 
 #ifndef PACER_H
