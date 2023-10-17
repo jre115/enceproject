@@ -5,11 +5,6 @@
 #include "matrix.h"
 #include "../fonts/font5x7_1.h"
 
-#define FROM_LOOP_EAST 1
-#define FROM_LOOP_WEST 2
-#define MESSAGE_RATE 10
-#define PACER_RATE 500
-
 
 void matrix_init(void)
 {

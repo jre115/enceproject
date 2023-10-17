@@ -3,6 +3,11 @@
 
 #include "system.h"
 
+#define FROM_LOOP_EAST 1
+#define FROM_LOOP_WEST 2
+#define MESSAGE_RATE 20
+#define PACER_RATE 500
+
 /* Initialise the matrix lights.  */
 void matrix_init(void);
 
