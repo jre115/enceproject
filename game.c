@@ -45,7 +45,7 @@ static char prevDir = NO_DIRECTION;
 static char other = NO_DIRECTION;
 static int8_t playerScore = 0;
 
-void show_display(void(*displayfunc)(void), char direction);
+void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char player);
 void displayTutorial(void);
 void scrolling_text(char* text);
 //char selectAndDisplayOptions(char* states, uint8_t n, displayMode_t mode);
@@ -55,6 +55,9 @@ char receive_char(char upperBound, char lowerBound);
 char set_num_rounds(void);
 void rotate_through_icons(void);
 void game_start(char roundsChar, char player);
+char send_receive(char player, char message);
+char encodeDirection(char direction);
+char decodeDirection(char direction);
 
 void init_all(void)
 {
@@ -206,10 +209,8 @@ void wait(char player) {
         }
 
         ir_uart_putc(player);
-        pacer_wait();
-        ir_uart_putc(player);
-        pacer_wait();
-        ir_uart_putc(player);
+        //pacer_wait();
+        //ir_uart_putc(player);
 
     }
 }
@@ -271,6 +272,58 @@ char game_welcome(void)
 }
 
 
+char get_and_send_other(char player) {
+
+    uint16_t tick = 0;
+    char character;
+    uint16_t sendRate = 1;
+    navswitch_init();
+    uint8_t recev = 0;
+
+
+    if (player == PLAYER1) {
+        while(recev == 0) {
+            tick += 1;
+            display_sand_timer();
+            pacer_wait();
+            if (tick > PACER_RATE / sendRate) {
+                tick = 0;
+                ir_uart_putc(encodeDirection(prevDir));
+            }
+
+            if (ir_uart_read_ready_p()) {
+                character = ir_uart_getc();
+                if (character >= '0' && character <= '5') {
+                    recev = 1;
+                }
+            }
+        }
+    } else if (player == PLAYER2) {
+        while (recev == 0) {
+            display_sand_timer();
+            pacer_wait();
+            if (ir_uart_read_ready_p()) {
+                char tempChar;
+                tempChar = ir_uart_getc();
+                if (tempChar >= 'A' && tempChar <= 'W') {
+                    character = decodeDirection(tempChar);
+                    recev = 1;
+                }
+            }
+        }
+
+        ir_uart_putc(prevDir);
+        pacer_wait();
+        ir_uart_putc(prevDir);
+        pacer_wait();
+        ir_uart_putc(prevDir);
+
+    }
+    return character;
+}
+
+
+
 char set_num_rounds(void)
 {
     scrolling_text("How many rounds?\0");
@@ -287,16 +340,21 @@ char set_num_rounds(void)
     return character;
 }
 
-
-void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
+void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char player)
 {
     uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
     char direction;
     matrix_init();
+    uint16_t dispRate = 20;
 
     TCNT1 = 0;
     while (TCNT1 < ticks) {
         navswitch_update();
+
+        if (TCNT1 % 3 == 0) {
+            displayfunc();
+        }
+        
         // push event:
         // do this
         if (ir_uart_read_ready_p()) {
@@ -308,35 +366,131 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds)
             ir_uart_putc(prevDir);
             PORTC |= (1 << 2); // led on
         }
+
+
+    }
+    matrix_init();
+}
+
+
+void timed_display2(void(*displayfunc)(void), uint16_t milliseconds, char player)
+{
+    uint16_t ticks = (milliseconds) * (CPU_F / PRESCALAR) / 1000;
+    char direction;
+    matrix_init();
+
+    TCNT1 = 0;
+    while (TCNT1 < ticks) {
+        navswitch_update();
+        if (ir_uart_read_ready_p())
+        {
+            char tempOther = ir_uart_getc();
+            if ('0' <= tempOther >= '5') {
+                other = tempOther;
+                PORTC |= (1 << 2);
+
+            }
+
+            
+
+            /*
+            if ((player ==  PLAYER1 && tempOther >= '0' && tempOther <= '5')) {
+                other = tempOther;
+            } else if (player == PLAYER2 && tempOther >= 'A' && tempOther <= 'W') {
+                other = decodeDirection(tempOther);
+            } else {
+                ir_uart_putc(prevDir);
+            }
+            */
+        }
+        
+        direction = direction_moved();
+        if (direction == NORTH || direction == EAST || direction == WEST) {
+            /*
+            if (player == PLAYER1) {
+                char encoded = encodeDirection(prevDir);
+                ir_uart_putc(encoded);
+            } else {
+                ir_uart_putc(prevDir);
+            }
+            */
+            prevDir = direction;
+            ir_uart_putc(prevDir);
+            
+            //PORTC |= (1 << 2); // led on
+        }
         displayfunc();
     }
     matrix_init();
 }
 
-void icon_countdown(void) 
+char encodeDirection(char direction) {
+    switch (direction) {
+        case NORTH:
+            return 'N';
+        case EAST:
+            return 'E';
+        case SOUTH:
+            return 'S';
+        case WEST:
+            return 'W';
+        case PUSH:
+            return 'P';               
+        case ANY:
+            return 'A';
+        case NO_DIRECTION:
+            return 'J';
+        default:
+            // Handle invalid direction
+            return '?';
+    }
+}
+
+char decodeDirection(char encodedDirection) {
+    switch (encodedDirection) {
+        case 'N':
+            return NORTH;
+        case 'E':
+            return EAST;
+        case 'S':
+            return SOUTH;
+        case 'W':
+            return WEST;
+        case 'J':
+            return NO_DIRECTION;
+        default:
+            // Handle invalid encoded direction
+            return '?';
+    }
+}
+
+void icon_countdown(char player)
 {
-    
-    timed_display(&display_paper, PSR_COUNTDOWN_TIME);
     //ir_uart_putc(prevDir);
-    timed_display(&display_scissors, PSR_COUNTDOWN_TIME);
+    timed_display(&display_rock, PSR_COUNTDOWN_TIME, player);
+    timed_display(&display_paper, PSR_COUNTDOWN_TIME, player);
+
+    timed_display(&display_scissors, PSR_COUNTDOWN_TIME, player);
+
     //ir_uart_putc(prevDir);
-    timed_display(&display_rock, PSR_COUNTDOWN_TIME);
-    //ir_uart_putc(prevDir);
-    timed_display(&display_none, PSR_COUNTDOWN_TIME / 2);
+    //char received = get_and_send_other(player)
+    //other = received;
+    timed_display(&display_none, PSR_COUNTDOWN_TIME / 2, player);
 
 }
 
-void display_own(void) {
+void display_own(char player) {
     pacer_wait();
     if (prevDir == ROCK) {
-        timed_display(&display_rock, YOUR_CHOICE_TIME);
+        timed_display(&display_rock, YOUR_CHOICE_TIME, player);
     } else if (prevDir == PAPER) {
-        timed_display(&display_paper, YOUR_CHOICE_TIME);
+        timed_display(&display_paper, YOUR_CHOICE_TIME, player);
     } else if (prevDir == SCISSORS) {
-        timed_display(&display_scissors, YOUR_CHOICE_TIME);
+        timed_display(&display_scissors, YOUR_CHOICE_TIME, player);
     } else {
-        timed_display(&display_none, YOUR_CHOICE_TIME);
+        timed_display(&display_none, YOUR_CHOICE_TIME, player);
     }
+
 }
 int8_t game_result(void) {
     int8_t result = 0;
@@ -347,38 +501,30 @@ int8_t game_result(void) {
     } else if (prevDir == NO_DIRECTION) {
         result = -1;
         playerScore = playerScore + 1;
-    } else if (other == ROCK) {
-        if (prevDir == SCISSORS) {
-            result = -1;
-        } else if (prevDir == PAPER) {
-            result = 1;
-        }
-    } else if (other == PAPER) {
-        if (prevDir == ROCK) {
-            result = -1;
-        } else if (prevDir == SCISSORS) {
-            result = 1;
-        }
-
-    } else if (other == SCISSORS) {
-        if (prevDir == PAPER) {
-            result = -1;
-        } else if (prevDir == ROCK) {
-            result = 1;
-        }
+    } else if (prevDir == ROCK && other == SCISSORS) {
+        result = 1;
+        playerScore = playerScore + 1;
+    } else if (prevDir == PAPER && other == ROCK) {
+        result = 1;
+        playerScore = playerScore + 1;
+    } else if (prevDir == SCISSORS && other == PAPER) {
+        result = 1;
+        playerScore = playerScore + 1;
+    } else {
+        result = -1;
     }
 
     return result;
 }
 
-void display_game_result(int8_t result) 
+void display_game_result(int8_t result, char player) 
 {
     if (result == -1) {
-        timed_display(&display_sad_face, RESULT_DISPLAY_TIME);
+        timed_display(&display_sad_face, RESULT_DISPLAY_TIME, player);
     } else if (result == 0) {
-        timed_display(&display_draw_face, RESULT_DISPLAY_TIME);
+        timed_display(&display_draw_face, RESULT_DISPLAY_TIME, player);
     } else if (result == 1) {
-        timed_display(&display_smiley_face, RESULT_DISPLAY_TIME);
+        timed_display(&display_smiley_face, RESULT_DISPLAY_TIME, player);
     }
 }
 
@@ -396,16 +542,19 @@ void game_start(char roundsChar, char player)
         PORTC &= ~(1 << 2);
         other = NO_DIRECTION;
         prevDir = NO_DIRECTION;
-        icon_countdown();
-        display_own();
+        icon_countdown(player);
+        display_own(player);
         int8_t result = game_result();
+        //display_game_result(result, player);
 
         // if there is a tie, you redo it ! so add another roundNO_DIRECTION
         if (result == 0) {
             rounds += 1;
         } else {
-            display_game_result(result);
+            display_game_result(result, player);
         }
+
+        
         round++;
 
     }
@@ -415,12 +564,22 @@ char send_receive(char player, char message)
 {
     char receivedMessage = NO_DIRECTION;
     if (player == PLAYER1) {
-        ir_uart_putc(message);
+        // player one MUST send encoded message
+        int i = 0;
+        while (i < 5) {
+            pacer_wait();
+            ir_uart_putc(encodeDirection(message));
+            i++;
+        }
+        
         while (1) {
             pacer_wait();
             if (ir_uart_read_ready_p()) {
-                receivedMessage = ir_uart_getc();
-                break;
+                char message = ir_uart_getc();
+                if (message >= '0' && message <= '5') {
+                    receivedMessage = message;
+                    break;
+                }
             }
         }
 
@@ -428,12 +587,21 @@ char send_receive(char player, char message)
         while (1) {
             pacer_wait();
             if (ir_uart_read_ready_p()) {
-                receivedMessage = ir_uart_getc();
-                break;
+                // player 2 must receive encoded message
+                char message = ir_uart_getc();
+                if (message >= 'A' && message <= 'W') {
+                    receivedMessage = decodeDirection(message);
+                    break;
+                }
             }
         }
-        pacer_wait();
-        ir_uart_putc(message);
+        int i = 0;
+        while (i < 5) {
+            pacer_wait();
+            ir_uart_putc(encodeDirection(message));
+            i++;
+        }
+        
     }
 
     return receivedMessage;
