@@ -40,21 +40,25 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char* prevDi
     char direction;
     matrix_init();
 
-    timer_init();
-    while (timer_get() < ticks) {
+    TCNT1 = 0;
+    while (TCNT1 < ticks) {
         navswitch_update();
         
         if (ir_uart_read_ready_p()) {
             *other = ir_uart_getc();
         }
+
         direction = direction_moved();
+
         if (direction == NORTH || direction == EAST || direction == WEST) {
             *prevDir = direction;
             ir_uart_putc(*prevDir);
             led_set(LED1, 1); // Blue LED on when choice made
         }
+
         displayfunc();
     }
+    
     matrix_init();
 }
 

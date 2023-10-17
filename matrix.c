@@ -43,6 +43,7 @@ void matrix_init_text(char* text)
 }
 
 /* Displays set message*/
+
 void matrix_disp_text(void)
 {
     tinygl_update();
