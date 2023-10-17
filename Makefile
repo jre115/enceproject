@@ -1,6 +1,6 @@
 # File:   Makefile
-# Author: M. P. Hayes, UCECE
-# Date:   12 Sep 2010
+# Author: J. Redfern, R. Campbell-Stokes
+# Date:   18 Oct 2023
 # Descr:  Makefile for game
 
 # Definitions.

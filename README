@@ -1,16 +1,18 @@
-Use this directory for your final game and its module(s).  Only the
-files in this directory will be marked.
+Jordan Redfern and Ruby Campbell-Stokes
+18/10/2023
 
-Ensure you use the git add command to add your files to the git
-repository.  For example,
+PSR - Paper Scissors Rock
 
-git add module.c
-
-Then use the git commit command to add the file contents
-
-git commit -m "Added file" module.c
-
-The use the git push command to copy the changes to the remote git server
-
-git push
-
+How to play:
+1. Make Program on terminal for each fun kit to load the game, the blue light will turn on when the fun kit is ready.
+2. Move nav switch to begin. 
+3. Players have the option to view a tutorial on how to select rock, paper or scissors. To view the tutorial: move the nav switch in the East or West direction until the 'Y' for 'yes' character is displayed and then push the nav switch in to select. Follow the directions in the tutorial to move the nav switch. Or see directions here:
+   [Rock = North
+    Paper = East
+    Scissors = West]
+4. Select the number of rounds you want to play using the same East and West movement to toggle through options and Push down to select. 
+5. The game will begin. Move the nav switch in the desired direction to input your move. The blue LED will turn on to confirm you have inputted a move. 
+6. After the icons for rock, paper, scissors have been displayed, the time for players to input their moves is over. Each player's chosen move will be displayed and a smiley face for the winner, sad face for loser and fine face if the round resulted in a tie. The usual rules of Paper, Scissors, Rock apply. If you did not manage to input your move in time, you will lose. 
+7. The game will repeat for the chosen number of rounds. 
+8. Once you have played all rounds, each player's result and the number of rounds they won will be displayed on their fun kit. 
+9. Players can choose to play again or quit. 
