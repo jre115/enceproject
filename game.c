@@ -182,8 +182,11 @@ void wait(char player) {
     if (player == PLAYER1) {
         while(recev == 0) {
             tick += 1;
-            display_sand_timer();
             pacer_wait();
+            if (tick % 2 == 0) {
+                display_sand_timer();
+            }
+            
             if (tick > PACER_RATE / sendRate) {
                 tick = 0;
                 ir_uart_putc(player);
@@ -351,7 +354,7 @@ void timed_display(void(*displayfunc)(void), uint16_t milliseconds, char player)
     while (TCNT1 < ticks) {
         navswitch_update();
 
-        if (TCNT1 % 3 == 0) {
+        if (TCNT1 % 2 == 0) {
             displayfunc();
         }
         
@@ -468,7 +471,10 @@ void icon_countdown(char player)
 {
     //ir_uart_putc(prevDir);
     timed_display(&display_rock, PSR_COUNTDOWN_TIME, player);
+    ir_uart_putc(prevDir);
+
     timed_display(&display_paper, PSR_COUNTDOWN_TIME, player);
+    ir_uart_putc(prevDir);
 
     timed_display(&display_scissors, PSR_COUNTDOWN_TIME, player);
 
@@ -490,7 +496,16 @@ void display_own(char player) {
     } else {
         timed_display(&display_none, YOUR_CHOICE_TIME, player);
     }
-
+    pacer_wait();
+    if (other == ROCK) {
+        timed_display(&display_rock, YOUR_CHOICE_TIME, player);
+    } else if (other == PAPER) {
+        timed_display(&display_paper, YOUR_CHOICE_TIME, player);
+    } else if (other == SCISSORS) {
+        timed_display(&display_scissors, YOUR_CHOICE_TIME, player);
+    } else {
+        timed_display(&display_none, YOUR_CHOICE_TIME, player);
+    }
 }
 int8_t game_result(void) {
     int8_t result = 0;
@@ -548,12 +563,13 @@ void game_start(char roundsChar, char player)
         //display_game_result(result, player);
 
         // if there is a tie, you redo it ! so add another roundNO_DIRECTION
+        /*
         if (result == 0) {
             rounds += 1;
         } else {
             display_game_result(result, player);
         }
-
+        */
         
         round++;
 
